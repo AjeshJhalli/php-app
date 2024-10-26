@@ -2,7 +2,7 @@
 session_start();
 if (!isset($_SESSION['logged_in'])) {
   header('Location: /auth/signin.php');
-  exit;
+  die();
 }
 
 $new = isset($_GET['mode']) && $_GET['mode'] === 'new';

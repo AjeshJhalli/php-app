@@ -2,7 +2,7 @@
 session_start();
 if (!isset($_SESSION['logged_in'])) {
   header('Location: /auth/signin.php');
-  exit;
+  die();
 }
 
 if ($_SERVER['PHP_SELF'] !== '/index.php') {
