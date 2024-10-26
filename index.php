@@ -23,7 +23,7 @@ if ($_SERVER['PHP_SELF'] !== '/index.php') {
   <?php include_once './components/navbar.php'; ?>
   <h1>Home</h1>
   <p>
-    This is the home page.
+    Welcome to the app.
   </p>
 </body>
 
