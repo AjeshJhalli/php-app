@@ -4,6 +4,22 @@ if (!isset($_SESSION['logged_in'])) {
   header('Location: /auth/signin.php');
   die();
 }
+
+$customer_id = $_GET['id'];
+
+$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $name = $_POST['name'];
+  pg_update($dbconn, 'customer', array('name' => $name), array('id' => $customer_id));
+  header('Location: ?id=' . $customer_id);
+  die();
+} else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+  pg_delete($dbconn, 'customer', array('id'=> $customer_id));
+  header('HX-Location: /customers');
+  die();
+}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -15,31 +31,10 @@ if (!isset($_SESSION['logged_in'])) {
 
 <body>
   <?php include_once '../components/navbar.php'; ?>
-  <?php
-  $customer_id = $_GET['id'];
-  ?>
   <h1>
     <a href="/customers">Customers</a>
     >
     <?php
-
-    $customer_id = $_GET['id'];
-
-    $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
-
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-      $name = $_POST['name'];
-      pg_update($dbconn, 'customer', array('name' => $name), array('id' => $customer_id));
-
-      header('Location: ?id=' . $customer_id);
-      die();
-    } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-      
-      pg_delete($dbconn, 'customer', array('id'=> $customer_id));
-
-      header('HX-Location: /customers');
-      die();
-    }
 
     $query = 'SELECT name FROM customer WHERE id = ' . $customer_id;
     $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());

@@ -58,7 +58,7 @@
 
         // Now check if username already exists
         $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
-        $query = "SELECT username FROM app_user WHERE username = '" . $username . "'";
+        $query = "SELECT id, username FROM app_user WHERE username = '" . $username . "'";
         $result = pg_query($dbconn, $query);
 
         $username_exists = false;
@@ -82,7 +82,16 @@
           $result = pg_insert($dbconn, "app_user", $user);
 
           if ($result) {
-            echo "Sign up successful";
+
+            session_regenerate_id();
+            $_SESSION['logged_in'] = true;
+            $_SESSION['username'] = $username;
+            $_SESSION['id'] = $line['id'];
+            $_SESSION['last_ping'] = time();
+            $_SESSION['expiry'] = $_SESSION['last_ping'] + 30 * 86400;
+
+            header('Location: /');
+            die();
           } else {
             echo "Could not sign up";
           }          
