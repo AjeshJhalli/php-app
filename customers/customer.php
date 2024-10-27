@@ -39,17 +39,21 @@ pg_close($dbconn);
 
 <body>
   <?php include_once '../components/navbar.php'; ?>
+  <main class="container">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
       <li class="breadcrumb-item active" aria-current="page"><?php echo $line["name"]; ?></li>
     </ol>
   </nav>
-  <a class="btn btn-primary" href="?id=<?php echo $customer_id ?>&mode=edit">Edit</a>
-  <button class="btn btn-danger" hx-delete="" hx-confirm="Are you sure you want to delete this customer?">
+  <div class="btn-group" role="group">
+  <a class="btn btn-outline-primary" href="?id=<?php echo $customer_id ?>&mode=edit">Edit</a>
+  <button class="btn btn-outline-primary" hx-delete="" hx-confirm="Are you sure you want to delete this customer?">
     Delete
   </button>
-  <h2>Profile</h2>
+  </div>
+
+  <h2><?php echo $line['name'] ?></h2>
   <?php if (isset($_GET['mode']) && $_GET['mode'] === 'edit') { ?>
     <form method="POST">
       <label>
@@ -63,14 +67,14 @@ pg_close($dbconn);
     <p>
       <span>Name: <?php echo $line["name"]; ?></span>
     </p>
-    <h2>Projects</h2>
+    <h3>Projects</h3>
     <ul>
       <li>Project 1</li>
       <li>Project 1</li>
       <li>Project 1</li>
     </ul>
-    <h2>Invoices</h2>
-    <table>
+    <h3>Invoices</h3>
+    <table class="table">
       <thead>
         <tr>
           <th>Number</th>
@@ -101,6 +105,7 @@ pg_close($dbconn);
       </tbody>
     </table>
   <?php } ?>
+  </main>
 </body>
 
 </html>

@@ -25,39 +25,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
   <?php include_once '../components/navbar.php'; ?>
-  <h1>
-    <a href="/customers">Customers</a>
-    <?php if ($new) { ?> > <a href="">New</a><?php } ?>
-  </h1>
 
-  <?php if ($new) { ?>
-    <form method="POST" action="">
-      <label>
-        Name:
-        <input type="text" name="name" value="">
-      </label>
-      <a href="">Cancel</a>
-      <button>Save</button>
-    </form>
-  <?php } else { ?>
-    <a href="?mode=new">New</a>
-  <?php
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
+        <?php if ($new) { ?><li class="breadcrumb-item active" aria-current="page"> <a href="">New</a></li><?php } ?>
+      </ol>
+    </nav>
 
-    $query = 'SELECT id, name FROM customer';
-    $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+    <?php if ($new) { ?>
+      <form method="POST" action="">
+        <label>
+          Name:
+          <input type="text" name="name" value="">
+        </label>
+        <a href="">Cancel</a>
+        <button>Save</button>
+      </form>
+    <?php } else { ?>
+      <a class="btn btn-primary" href="?mode=new">New</a>
+    <?php
 
-    echo "<ul>";
-    while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-      echo "<li>";
-      echo "<a href='/customers/customer.php?id={$line['id']}'>{$line['name']}</a>";
-      echo "</li>";
+      $query = 'SELECT id, name FROM customer';
+      $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+
+      echo "<div class='list-group'>";
+      while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+        
+        echo "<a class='list-group-item list-group-item-action' href='/customers/customer.php?id={$line['id']}'>{$line['name']}</a>";
+        
+      }
+      echo "</div>";
+
+      pg_free_result($result);
+      pg_close($dbconn);
     }
-    echo "</ul>";
+    ?>
+  </main>
 
-    pg_free_result($result);
-    pg_close($dbconn);
-  }
-  ?>
+
 </body>
 
 </html>
