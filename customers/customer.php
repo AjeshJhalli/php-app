@@ -20,6 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   die();
 }
 
+$query = 'SELECT name FROM customer WHERE id = ' . $customer_id;
+$result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+
+if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
+  http_response_code(404);
+  echo "Error - Could not find customer";
+  die();
+}
+
+pg_free_result($result);
+pg_close($dbconn);
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -35,21 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="/customers">Customers</a>
     >
     <?php
-
-    $query = 'SELECT name FROM customer WHERE id = ' . $customer_id;
-    $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
-
-    if ($line = pg_fetch_row($result, null, PGSQL_ASSOC)) {
-      echo "<a href='/customers/customer.php?id={$customer_id}'>{$line["name"]}</a>";
-    } else {
-      echo "Error - Could not find customer";
-      http_response_code(404);
-      die();
-    }
-
-    pg_free_result($result);
-    pg_close($dbconn);
-
+    echo "<a href='/customers/customer.php?id={$customer_id}'>{$line["name"]}</a>";
     ?>
   </h1>
   <a href="?id=<?php echo $customer_id ?>&mode=edit">Edit</a>
