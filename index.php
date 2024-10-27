@@ -15,9 +15,7 @@ if ($_SERVER['PHP_SELF'] !== '/index.php') {
 <!DOCTYPE html>
 <html>
 
-<head>
-  <title>Software Developer Costing Xero Sync</title>
-</head>
+<?php include_once './components/head.php'; ?>
 
 <body>
   <?php include_once './components/navbar.php'; ?>

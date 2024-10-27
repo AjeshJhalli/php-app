@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   header('Location: ?id=' . $customer_id);
   die();
 } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-  pg_delete($dbconn, 'customer', array('id'=> $customer_id));
+  pg_delete($dbconn, 'customer', array('id' => $customer_id));
   header('HX-Location: /customers');
   die();
 }
@@ -35,23 +35,18 @@ pg_close($dbconn);
 ?>
 <!DOCTYPE html>
 <html>
-
-<head>
-  <title>Software Developer Costing Xero Sync</title>
-  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
-</head>
+<?php include_once '../components/head.php'; ?>
 
 <body>
   <?php include_once '../components/navbar.php'; ?>
-  <h1>
-    <a href="/customers">Customers</a>
-    >
-    <?php
-    echo "<a href='/customers/customer.php?id={$customer_id}'>{$line["name"]}</a>";
-    ?>
-  </h1>
-  <a href="?id=<?php echo $customer_id ?>&mode=edit">Edit</a>
-  <button hx-delete="" hx-confirm="Are you sure you want to delete this customer?">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><?php echo $line["name"]; ?></li>
+    </ol>
+  </nav>
+  <a class="btn btn-primary" href="?id=<?php echo $customer_id ?>&mode=edit">Edit</a>
+  <button class="btn btn-danger" hx-delete="" hx-confirm="Are you sure you want to delete this customer?">
     Delete
   </button>
   <h2>Profile</h2>

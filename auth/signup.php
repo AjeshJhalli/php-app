@@ -8,9 +8,7 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-  <title>Software Developer Costing Xero Sync</title>
-</head>
+<?php include_once '../components/head.php'; ?>
 
 <body>
   <h1>Software Developer Costing Xero Sync</h1>
