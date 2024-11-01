@@ -1,3 +1,6 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
 name: Deploy PHP app to Azure Web App - developer-costing
 
 on:
@@ -13,12 +16,12 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write # Required for requesting the JWT
+      id-token: write #This is required for requesting the JWT
 
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1  # Ensures only the latest commit is fetched
+          fetch-depth: 1
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -34,11 +37,3 @@ jobs:
           app-name: 'developer-costing'
           slot-name: 'Production'
           package: .
-
-      - name: Restart Azure Web App
-        run: az webapp restart --name 'developer-costing' --resource-group 'your-resource-group'
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZUREAPPSERVICE_CLIENTID_323BEC9C0166495A8CB845162C31A8CA }}
-          AZURE_TENANT_ID: ${{ secrets.AZUREAPPSERVICE_TENANTID_973A9E58EEC24DADBAC2E56550A77210 }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_83502C707ED14856820D1B61A3DE8557 }}
-          AZURE_PASSWORD: ${{ secrets.AZUREAPPSERVICE_PASSWORD }}
