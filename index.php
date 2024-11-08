@@ -27,7 +27,7 @@ $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PG
 
 if ($url_path == '/customers/customer') {
 
-  $customer_id = $_GET['id'];
+  $customer_id = $_GET['id']; 
 
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
