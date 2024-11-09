@@ -276,12 +276,11 @@ if ($url_path == '/customers/customer') {
     <?php
     } else if ($uri_path == "/auth/signin") {
     ?>
-      <h1>Code Cost</h1>
-      <h2>Sign In</h2>
+      <h1>Sign In</h1>
       <form class="needs-validation" method="POST">
         <div>
           <label class="form-label">
-            Username: <input class="form-control <?php if (1) ?>" type="text" name="username">
+            Username: <input class="form-control" type="text" name="username">
           </label>
         </div>
         <div>
@@ -316,39 +315,37 @@ if ($url_path == '/customers/customer') {
             }
           }
 
-          echo '<div class="invalid-feedback">Incorrect username or password</div>';
+          echo '<div class="mb-2">Incorrect username or password</div>';
 
           pg_free_result($result);
           pg_close($dbconn);
         }
         ?>
-        <button class="btn btn-primary">Sign In</button>
+        <button class="btn btn-primary my-2">Sign In</button>
       </form>
       Don't have an account yet? <a href="/auth/signup">Sign Up</a>
     <?php
     } elseif ($url_path == "/auth/signup") {
     ?>
-
-      <h1>Software Developer Costing Xero Sync</h1>
-      <h2>Sign Up</h2>
-      <form method="POST">
+      <h1>Sign Up</h1>
+      <form class="needs-validation" method="POST">
         <div>
-          <label>
-            Username: <input type="text" name="username">
+          <label class="form-label">
+            Username: <input class="form-control" type="text" name="username">
           </label>
         </div>
         <div>
-          <label>
-            Password: <input type="password" name="password">
+          <label class="form-label">
+            Password: <input class="form-control" type="password" name="password">
           </label>
         </div>
         <div>
-          <label>
-            Confirm Password: <input type="password" name="confirm-password">
+          <label class="form-label">
+            Confirm Password: <input class="form-control" type="password" name="confirm-password">
           </label>
         </div>
 
-        <ul>
+        <ul class="m-0 p-0">
           <?php
           if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -417,7 +414,7 @@ if ($url_path == '/customers/customer') {
           }
           ?>
         </ul>
-        <button>Sign Up</button>
+        <button class="btn btn-primary my-2">Sign Up</button>
       </form>
       Already have an account? <a href="/auth/signin">Sign In</a>
       <?php
