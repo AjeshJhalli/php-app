@@ -27,7 +27,7 @@ $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PG
 
 if ($url_path == '/customers/customer') {
 
-  $customer_id = $_GET['id']; 
+  $customer_id = $_GET['id'];
 
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
@@ -116,6 +116,38 @@ if ($url_path == '/customers/customer') {
 
   die();
 } elseif ($url_path == "/projects") {
+} elseif ($url_path == "/components/customer-list") {
+
+  if (isset($_GET['search'])) {
+    $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
+    
+    // Prepare a SQL query with a placeholder for the search term
+    $query = "SELECT id, name FROM customer WHERE user_id = $1 AND name ILIKE $2";
+    $params = [$_SESSION['id'], $search];
+
+    // Prepare and execute the query securely
+    $stmt = pg_prepare($dbconn, "", $query);
+    $result = pg_execute($dbconn, "", $params);
+  } else {
+
+    $query = "SELECT id, name FROM customer WHERE user_id = " . $_SESSION['id'];
+    $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+  }
+
+  if (!$result) {
+    die('Query failed: ' . pg_last_error());
+  }
+
+
+  while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+
+    echo "<a class='list-group-item list-group-item-action' href='/customers/customer?id={$line['id']}'>{$line['name']}</a>";
+  }
+
+
+  pg_free_result($result);
+  pg_close($dbconn);
+  die();
 } elseif ($_SERVER['PHP_SELF'] !== '/index.php') {
   http_response_code(404);
   die();
@@ -238,16 +270,9 @@ if ($url_path == '/customers/customer') {
         <div id="customer-tabs" hx-get="/components/customer-tabs?tab=projects" hx-trigger="load"></div>
       <?php }
     } elseif ($url_path == '/customers') {
-      ?>
-
-      <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
-          <?php if ($new) { ?><li class="breadcrumb-item active" aria-current="page"> <a href="">New</a></li><?php } ?>
-        </ol>
-      </nav>
-      <?php if ($new) { ?>
-        <form method="POST" action="">
+      if ($new) { ?>
+        <h1 class="mb-4">New Customer</h1>
+        <form method="POST">
           <label>
             Name:
             <input type="text" name="name" value="">
@@ -256,26 +281,26 @@ if ($url_path == '/customers/customer') {
           <button>Save</button>
         </form>
       <?php } else { ?>
-        <a class="btn btn-primary mb-3" href="?mode=new">New</a>
+        <h1 class="mb-4">Customers</h1>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <form class="form-inline my-2 my-lg-0 d-flex" hx-get="/components/customer-list" hx-target="#customer-list" hx-trigger="load, input changed delay:500ms, search">
+            <input class="form-control" name="search" type="search" placeholder="Search" aria-label="Search">
+            
+          </form>
+          <div class="btn-group" role="group" aria-label="Customer Buttons">
+            <a class="btn btn-primary" href="?mode=new">New</a>
+            <button type="button" class="btn btn-primary">Button 2</button>
+            <button type="button" class="btn btn-primary">Button 3</button>
+          </div>
+        </div>
+
+        <div id="customer-list" class="list-group"></div>
+
       <?php
-        $query = "SELECT id, name FROM customer WHERE user_id = " . $_SESSION['id'];
-        $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
-
-        echo "<div class='list-group'>";
-        while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-
-          echo "<a class='list-group-item list-group-item-action' href='/customers/customer?id={$line['id']}'>{$line['name']}</a>";
-        }
-        echo "</div>";
-
-        pg_free_result($result);
-        pg_close($dbconn);
       }
+    } elseif ($uri_path == "/auth/signin") {
       ?>
-
-    <?php
-    } else if ($uri_path == "/auth/signin") {
-    ?>
       <h1>Sign In</h1>
       <form class="needs-validation" method="POST">
         <div>
@@ -324,9 +349,7 @@ if ($url_path == '/customers/customer') {
         <button class="btn btn-primary my-2">Sign In</button>
       </form>
       Don't have an account yet? <a href="/auth/signup">Sign Up</a>
-    <?php
-    } elseif ($url_path == "/auth/signup") {
-    ?>
+    <?php } elseif ($url_path == "/auth/signup") { ?>
       <h1>Sign Up</h1>
       <form class="needs-validation" method="POST">
         <div>
@@ -417,23 +440,19 @@ if ($url_path == '/customers/customer') {
         <button class="btn btn-primary my-2">Sign Up</button>
       </form>
       Already have an account? <a href="/auth/signin">Sign In</a>
-      <?php
-      ?><?php
-      } elseif ($url_path == "/projects") {
-        ?>
+    <?php } elseif ($url_path == "/projects") { ?>
       <h1>Projects</h1>
       <p>
-        
       </p>
     <?php
-      } else {
+    } else {
     ?>
       <h1>Home</h1>
       <p>
         Welcome to the app.
       </p>
     <?php
-      }
+    }
     ?>
   </main>
 </body>
