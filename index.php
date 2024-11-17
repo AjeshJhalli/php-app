@@ -120,16 +120,11 @@ if ($url_path == '/customers/customer') {
 
   if (isset($_GET['search'])) {
     $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
-    
-    // Prepare a SQL query with a placeholder for the search term
     $query = "SELECT id, name FROM customer WHERE user_id = $1 AND name ILIKE $2";
     $params = [$_SESSION['id'], $search];
-
-    // Prepare and execute the query securely
     $stmt = pg_prepare($dbconn, "", $query);
     $result = pg_execute($dbconn, "", $params);
   } else {
-
     $query = "SELECT id, name FROM customer WHERE user_id = " . $_SESSION['id'];
     $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
   }
@@ -138,12 +133,33 @@ if ($url_path == '/customers/customer') {
     die('Query failed: ' . pg_last_error());
   }
 
-
   while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-
     echo "<a class='list-group-item list-group-item-action' href='/customers/customer?id={$line['id']}'>{$line['name']}</a>";
   }
 
+  pg_free_result($result);
+  pg_close($dbconn);
+  die();
+} elseif ($url_path == "/components/project-list") {
+
+  if (isset($_GET['search'])) {
+    $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
+    $query = "SELECT id, name FROM project WHERE user_id = $1 AND name ILIKE $2";
+    $params = [$_SESSION['id'], $search];
+    $stmt = pg_prepare($dbconn, "", $query);
+    $result = pg_execute($dbconn, "", $params);
+  } else {
+    $query = "SELECT id, name FROM project WHERE user_id = " . $_SESSION['id'];
+    $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+  }
+
+  if (!$result) {
+    die('Query failed: ' . pg_last_error());
+  }
+
+  while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+    echo "<a class='list-group-item list-group-item-action' href='/projects/project?id={$line['id']}'>{$line['name']}</a>";
+  }
 
   pg_free_result($result);
   pg_close($dbconn);
@@ -253,32 +269,35 @@ if ($url_path == '/customers/customer') {
           Delete
         </button>
       </div>
-      <h2 class="pt-4"><?php echo $line['name'] ?></h2>
+      <h2 class="py-4"><?php echo $line['name'] ?></h2>
       <?php if (isset($_GET['mode']) && $_GET['mode'] === 'edit') { ?>
         <form method="POST">
-          <label>
-            Name:
-            <input type="text" name="name" value="<?php echo $line['name'] ?>">
-          </label>
-          <a href="?id=<?php echo $customer_id ?>">Cancel</a>
-          <button>Save</button>
+          <div>
+            <label class="form-label">
+              Name:
+              <input class="form-control" type="text" name="name" value="<?php echo $line['name'] ?>">
+            </label>
+          </div>
+          <a class="btn btn-primary" href="?id=<?php echo $customer_id ?>">Cancel</a>
+          <button class="btn btn-primary">Save</button>
         </form>
       <?php } else { ?>
-        <p>
-          <span>Name: <?php echo $line["name"]; ?></span>
-        </p>
         <div id="customer-tabs" hx-get="/components/customer-tabs?tab=projects" hx-trigger="load"></div>
       <?php }
     } elseif ($url_path == '/customers') {
       if ($new) { ?>
         <h1 class="mb-4">New Customer</h1>
         <form method="POST">
-          <label>
-            Name:
-            <input type="text" name="name" value="">
-          </label>
-          <a href="">Cancel</a>
-          <button>Save</button>
+          <div>
+            <label class="form-label">
+              Name:
+              <input class="form-control" type="text" name="name" value="">
+            </label>
+          </div>
+          <div>
+            <a class="btn btn-primary" href="/customers">Cancel</a>
+            <button class="btn btn-primary">Save</button>
+          </div>
         </form>
       <?php } else { ?>
         <h1 class="mb-4">Customers</h1>
@@ -286,7 +305,7 @@ if ($url_path == '/customers/customer') {
         <div class="d-flex justify-content-between align-items-center mb-3">
           <form class="form-inline my-2 my-lg-0 d-flex" hx-get="/components/customer-list" hx-target="#customer-list" hx-trigger="load, input changed delay:500ms, search">
             <input class="form-control" name="search" type="search" placeholder="Search" aria-label="Search">
-            
+
           </form>
           <div class="btn-group" role="group" aria-label="Customer Buttons">
             <a class="btn btn-primary" href="?mode=new">New</a>
@@ -441,9 +460,15 @@ if ($url_path == '/customers/customer') {
       </form>
       Already have an account? <a href="/auth/signin">Sign In</a>
     <?php } elseif ($url_path == "/projects") { ?>
-      <h1>Projects</h1>
-      <p>
-      </p>
+      <h1 class="mb-4">Projects</h1>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <form class="form-inline my-2 my-lg-0 d-flex" hx-get="/components/project-list" hx-target="#project-list" hx-trigger="load, input changed delay:500ms, search">
+          <input class="form-control" name="search" type="search" placeholder="Search" aria-label="Search">
+        </form>
+        <a class="btn btn-primary" href="?mode=new">New</a>
+      </div>
+
+      <div id="project-list" class="list-group"></div>
     <?php
     } else {
     ?>
