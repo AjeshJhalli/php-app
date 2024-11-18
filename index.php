@@ -112,10 +112,19 @@ if ($url_path == '/customers/customer') {
     }
     ?>
   </div>
-<?php
+  <?php
 
   die();
 } elseif ($url_path == "/projects") {
+
+  $new = isset($_GET['mode']) && $_GET['mode'] === 'new';
+
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    pg_insert($dbconn, "project", ["name" => $_POST["name"], "user_id" => $_SESSION["id"], "customer_id" => $_POST["customer_id"]]);
+    pg_close($dbconn);
+    header("Location: /projects");
+    die();
+  }
 } elseif ($url_path == "/components/customer-list") {
 
   if (isset($_GET['search'])) {
@@ -144,22 +153,31 @@ if ($url_path == '/customers/customer') {
 
   if (isset($_GET['search'])) {
     $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
-    $query = "SELECT id, name FROM project WHERE user_id = $1 AND name ILIKE $2";
+    $query = "SELECT project.id AS project_id, project.name AS project_name, customer_id, customer.name AS customer_name FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.user_id = $1 AND project.name ILIKE $2";
     $params = [$_SESSION['id'], $search];
     $stmt = pg_prepare($dbconn, "", $query);
     $result = pg_execute($dbconn, "", $params);
   } else {
-    $query = "SELECT id, name FROM project WHERE user_id = " . $_SESSION['id'];
-    $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+    $query = "SELECT project.id AS project_id, project.name AS project_name, customer_id, customer.name AS customer_name FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.user_id = $1";
+    $params = [$_SESSION['id']];
+    $stmt = pg_prepare($dbconn, "", $query);
+    $result = pg_execute($dbconn, "", $params);
   }
 
   if (!$result) {
     die('Query failed: ' . pg_last_error());
   }
 
-  while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
-    echo "<a class='list-group-item list-group-item-action' href='/projects/project?id={$line['id']}'>{$line['name']}</a>";
-  }
+  while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
+    <tr onclick="window.location.href = '/projects/project?id=<?php echo $line["project_id"]; ?>'">
+      <td>
+        <?php echo $line['project_name']; ?>
+      </td>
+      <td>
+        <?php echo $line['customer_name']; ?>
+      </td>
+    </tr>
+<?php }
 
   pg_free_result($result);
   pg_close($dbconn);
@@ -179,9 +197,11 @@ if ($url_path == '/customers/customer') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
   <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
   <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
 </head>
 
 <body>
@@ -305,13 +325,8 @@ if ($url_path == '/customers/customer') {
         <div class="d-flex justify-content-between align-items-center mb-3">
           <form class="form-inline my-2 my-lg-0 d-flex" hx-get="/components/customer-list" hx-target="#customer-list" hx-trigger="load, input changed delay:500ms, search">
             <input class="form-control" name="search" type="search" placeholder="Search" aria-label="Search">
-
           </form>
-          <div class="btn-group" role="group" aria-label="Customer Buttons">
-            <a class="btn btn-primary" href="?mode=new">New</a>
-            <button type="button" class="btn btn-primary">Button 2</button>
-            <button type="button" class="btn btn-primary">Button 3</button>
-          </div>
+          <a class="btn btn-primary" href="?mode=new">New</a>
         </div>
 
         <div id="customer-list" class="list-group"></div>
@@ -461,17 +476,63 @@ if ($url_path == '/customers/customer') {
       Already have an account? <a href="/auth/signin">Sign In</a>
     <?php } elseif ($url_path == "/projects") { ?>
       <h1 class="mb-4">Projects</h1>
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <form class="form-inline my-2 my-lg-0 d-flex" hx-get="/components/project-list" hx-target="#project-list" hx-trigger="load, input changed delay:500ms, search">
-          <input class="form-control" name="search" type="search" placeholder="Search" aria-label="Search">
-        </form>
-        <a class="btn btn-primary" href="?mode=new">New</a>
-      </div>
 
-      <div id="project-list" class="list-group"></div>
-    <?php
+      <?php if ($new) { ?>
+
+        <form method="POST">
+          <div>
+            <label class="form-label">
+              Customer:
+              <select class="form-select" name="customer_id">
+                <option selected disabled>Customer</option>
+                <?php
+
+                $query = "SELECT id, name FROM customer WHERE user_id = '" . $_SESSION["id"] . "' ";
+                $result = pg_query($dbconn, $query) or die("Query failed: " . pg_last_error());
+
+                while (($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
+                  echo "<option value='" . $line["id"] . "'>" . $line["name"] . "</option>";
+                }
+
+                ?>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label class="form-label">
+              Project Name:
+              <input class="form-control" type="text" name="name">
+            </label>
+          </div>
+          <div>
+            <a class="btn btn-primary" href="/projects">Cancel</a>
+            <button class="btn btn-primary">Save</button>
+          </div>
+        </form>
+
+      <?php } else {
+      ?>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <form class="form-inline my-2 my-lg-0 d-flex" hx-get="/components/project-list" hx-target="#project-tbody" hx-trigger="load, input changed delay:500ms, search">
+            <input class="form-control" name="search" type="search" placeholder="Search" aria-label="Search">
+          </form>
+          <a class="btn btn-primary" href="?mode=new">New</a>
+        </div>
+        <table class="table border mt-2 table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Project Name</th>
+              <th scope="col">Customer</th>
+            </tr>
+          </thead>
+          <tbody id="project-tbody">
+          </tbody>
+        </table>
+
+
+      <?php }
     } else {
-    ?>
+      ?>
       <h1>Home</h1>
       <p>
         Welcome to the app.
