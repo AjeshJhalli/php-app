@@ -50,6 +50,20 @@ if ($url_path == '/customers/customer') {
 
   pg_free_result($result);
   pg_close($dbconn);
+} elseif ($url_path == '/projects/project') {
+
+  $project_id = $_GET['id'];
+
+  $query = 'SELECT project.name AS project_name, customer.name as customer_name, customer_id FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = ' . $project_id;
+  $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+
+  if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
+    http_response_code(404);
+    die();
+  }
+
+  pg_free_result($result);
+  pg_close($dbconn);
 } else if ($url_path == '/customers') {
 
   $new = isset($_GET['mode']) && $_GET['mode'] === 'new';
@@ -66,11 +80,11 @@ if ($url_path == '/customers/customer') {
   echo 'invoices <a class="nav-link active" id="customer-invoices-tab" hx-get="/components/customer-invoices" hx-target="#tab-content" hx-swap-oob="true">Invoices</a>';
   die();
 } elseif ($url_path == "/components/customer-projects") {
-  echo "projects";
   die();
 } elseif ($url_path == "/components/customer-tabs") {
 
   $tab = $_GET["tab"];
+  $customer_id = $_GET['customer_id'];
 
 ?>
   <ul class="nav nav-tabs">
@@ -83,28 +97,28 @@ if ($url_path == '/customers/customer') {
     <a class="nav-link disabled" href="#">Addresses</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <?php if ($tab == "projects") echo 'active' ?>" id="customer-projects-tab" hx-get="/components/customer-tabs?tab=projects" hx-target="#customer-tabs">Projects</a>
+      <a class="nav-link <?php if ($tab == "projects") echo 'active' ?>" id="customer-projects-tab" hx-get="/components/customer-tabs?tab=projects&customer_id=<?php echo $customer_id; ?>" hx-target="#customer-tabs">Projects</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link <?php if ($tab == "invoices") echo 'active' ?>" id="customer-invoices-tab" hx-get="/components/customer-tabs?tab=invoices" hx-target="#customer-tabs">Invoices</a>
+      <a class="nav-link <?php if ($tab == "invoices") echo 'active' ?>" id="customer-invoices-tab" hx-get="/components/customer-tabs?tab=invoices&customer_id=<?php echo $customer_id; ?>" hx-target="#customer-tabs">Invoices</a>
     </li>
     <li class="nav-item">
   </ul>
   <div id="tab-content">
     <?php
     if ($tab == "projects") {
+
+      $query = "SELECT id, name FROM project WHERE customer_id = " . $_GET["customer_id"] . " AND user_id = '" . $_SESSION['id'] . "'";
+      $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+
     ?>
-      <div class="d-flex justify-content-between p-3">
-        <h5>Projects</h5>
-        <button class="btn btn-outline-primary btn-sm">New</button>
-      </div>
-      <div class="list-group list-group-flush">
-        <a href="#" class="list-group-item list-group-item-action" aria-current="true">
-          The current link item
-        </a>
-        <a href="#" class="list-group-item list-group-item-action">A second link item</a>
-        <a href="#" class="list-group-item list-group-item-action">A third link item</a>
-        <a href="#" class="list-group-item list-group-item-action">A fourth link item</a>
+      
+      <div class="list-group mt-2">
+        <?php
+        while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+          echo "<a class='list-group-item list-group-item-action' href='/projects/project?id={$line['id']}'>{$line['name']}</a>";
+        }
+        ?>
       </div>
     <?php
     } else if ($tab == "invoices") {
@@ -302,7 +316,7 @@ if ($url_path == '/customers/customer') {
           <button class="btn btn-primary">Save</button>
         </form>
       <?php } else { ?>
-        <div id="customer-tabs" hx-get="/components/customer-tabs?tab=projects" hx-trigger="load"></div>
+        <div id="customer-tabs" hx-get="/components/customer-tabs?tab=projects&customer_id=<?php echo $customer_id; ?>" hx-trigger="load"></div>
       <?php }
     } elseif ($url_path == '/customers') {
       if ($new) { ?>
@@ -530,6 +544,37 @@ if ($url_path == '/customers/customer') {
         </table>
 
 
+      <?php }
+    } elseif ($url_path == "/projects/project") { ?>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/projects">Projects</a></li>
+          <li class="breadcrumb-item active" aria-current="page"><?php echo $line["project_name"]; ?></li>
+        </ol>
+      </nav>
+      <div class="btn-group" role="group">
+        <a class="btn btn-outline-primary" href="?id=<?php echo $project_id ?>&mode=edit">Edit</a>
+        <button class="btn btn-outline-primary" hx-delete="" hx-confirm="Are you sure you want to delete this project?">
+          Delete
+        </button>
+      </div>
+      <h2 class="py-4"><?php echo $line['project_name'] ?></h2>
+      <?php if (isset($_GET['mode']) && $_GET['mode'] === 'edit') { ?>
+        <form method="POST">
+          <div>
+            <label class="form-label">
+              Project Name:
+              <input class="form-control" type="text" name="name" value="<?php echo $line['project_name'] ?>">
+            </label>
+          </div>
+          <a class="btn btn-primary" href="?id=<?php echo $project_id ?>">Cancel</a>
+          <button class="btn btn-primary">Save</button>
+        </form>
+      <?php } else { ?>
+        <!-- <div id="customer-tabs" hx-get="/components/customer-tabs?tab=projects" hx-trigger="load"></div> -->
+
+        Customer:
+        <a href="/customers/customer?id=<?php echo $line["customer_id"]; ?>"><?php echo $line["customer_name"] ?></a>
       <?php }
     } else {
       ?>
