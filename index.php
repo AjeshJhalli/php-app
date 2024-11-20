@@ -54,7 +54,19 @@ if ($url_path == '/customers/customer') {
 
   $project_id = $_GET['id'];
 
-  $query = 'SELECT project.name AS project_name, customer.name as customer_name, customer_id FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = ' . $project_id;
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST["name"];
+    $hourly_rate = $_POST["hourly_rate"];
+    pg_update($dbconn, "project", array("name" => $name, "hourly_rate" => $hourly_rate), array('id' => $project_id));
+    header('Location: ?id=' . $project_id);
+    die();
+  } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    pg_delete($dbconn, "project", array('id' => $project_id));
+    header('HX-Location: /customers');
+    die();
+  }
+
+  $query = 'SELECT project.name AS project_name, customer.name as customer_name, customer_id, hourly_rate FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = ' . $project_id;
   $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
 
   if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
@@ -112,7 +124,7 @@ if ($url_path == '/customers/customer') {
       $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
 
     ?>
-      
+
       <div class="list-group mt-2">
         <?php
         while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
@@ -134,7 +146,7 @@ if ($url_path == '/customers/customer') {
   $new = isset($_GET['mode']) && $_GET['mode'] === 'new';
 
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    pg_insert($dbconn, "project", ["name" => $_POST["name"], "user_id" => $_SESSION["id"], "customer_id" => $_POST["customer_id"]]);
+    pg_insert($dbconn, "project", ["name" => $_POST["name"], "user_id" => $_SESSION["id"], "customer_id" => $_POST["customer_id"], "hourly_rate" => $_POST["hourly_rate"]]);
     pg_close($dbconn);
     header("Location: /projects");
     die();
@@ -167,7 +179,7 @@ if ($url_path == '/customers/customer') {
 
   if (isset($_GET['search'])) {
     $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
-    $query = "SELECT project.id AS project_id, project.name AS project_name, customer_id, customer.name AS customer_name FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.user_id = $1 AND project.name ILIKE $2";
+    $query = "SELECT project.id AS project_id, project.name AS project_name, customer_id, customer.name AS customer_name FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.user_id = $1 AND (project.name ILIKE $2 OR customer.name ILIKE $2)";
     $params = [$_SESSION['id'], $search];
     $stmt = pg_prepare($dbconn, "", $query);
     $result = pg_execute($dbconn, "", $params);
@@ -519,6 +531,12 @@ if ($url_path == '/customers/customer') {
             </label>
           </div>
           <div>
+            <label class="form-label">
+              Hourly Rate:
+              <input class="form-control" type="number" name="hourly_rate">
+            </label>
+          </div>
+          <div>
             <a class="btn btn-primary" href="/projects">Cancel</a>
             <button class="btn btn-primary">Save</button>
           </div>
@@ -567,14 +585,23 @@ if ($url_path == '/customers/customer') {
               <input class="form-control" type="text" name="name" value="<?php echo $line['project_name'] ?>">
             </label>
           </div>
+          <div>
+            <label class="form-label">
+              Hourly Rate:
+              <input class="form-control" type="number" step=".01" name="hourly_rate" value="<?php echo $line["hourly_rate"] ?>">
+            </label>
+          </div>
           <a class="btn btn-primary" href="?id=<?php echo $project_id ?>">Cancel</a>
           <button class="btn btn-primary">Save</button>
         </form>
       <?php } else { ?>
-        <!-- <div id="customer-tabs" hx-get="/components/customer-tabs?tab=projects" hx-trigger="load"></div> -->
-
-        Customer:
-        <a href="/customers/customer?id=<?php echo $line["customer_id"]; ?>"><?php echo $line["customer_name"] ?></a>
+        <div>
+          Customer:
+          <a href="/customers/customer?id=<?php echo $line["customer_id"]; ?>"><?php echo $line["customer_name"] ?></a>
+        </div>
+        <div>
+          Hourly Rate: £<?php echo number_format((float)$line["hourly_rate"], 2, '.', ''); ?> 
+        </div>
       <?php }
     } else {
       ?>
