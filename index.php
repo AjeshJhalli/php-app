@@ -62,11 +62,11 @@ if ($url_path == '/customers/customer') {
     die();
   } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     pg_delete($dbconn, "project", array('id' => $project_id));
-    header('HX-Location: /customers');
+    header('HX-Location: /projects');
     die();
   }
 
-  $query = 'SELECT project.name AS project_name, customer.name as customer_name, customer_id, hourly_rate FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = ' . $project_id;
+  $query = 'SELECT project.name AS project_name, customer.name AS customer_name, customer_id, hourly_rate FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = ' . $project_id;
   $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
 
   if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
@@ -74,8 +74,9 @@ if ($url_path == '/customers/customer') {
     die();
   }
 
+  $customer_id = $line["customer_id"];
+
   pg_free_result($result);
-  pg_close($dbconn);
 } else if ($url_path == '/customers') {
 
   $new = isset($_GET['mode']) && $_GET['mode'] === 'new';
@@ -146,7 +147,7 @@ if ($url_path == '/customers/customer') {
   $new = isset($_GET['mode']) && $_GET['mode'] === 'new';
 
   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    pg_insert($dbconn, "project", ["name" => $_POST["name"], "user_id" => $_SESSION["id"], "customer_id" => $_POST["customer_id"], "hourly_rate" => $_POST["hourly_rate"]]);
+    $result = pg_insert($dbconn, "project", ["name" => $_POST["name"], "user_id" => $_SESSION["id"], "customer_id" => $_POST["customer_id"], "hourly_rate" => $_POST["hourly_rate"]]);
     pg_close($dbconn);
     header("Location: /projects");
     die();
@@ -207,6 +208,12 @@ if ($url_path == '/customers/customer') {
 
   pg_free_result($result);
   pg_close($dbconn);
+  die();
+} elseif ($url_path == "/components/project-line-items") {
+  include "./new-line-item.php";
+  die();
+} elseif ($url_path == "/project-line-item/name") {
+  include "./project-line-item-name.php";
   die();
 } elseif ($_SERVER['PHP_SELF'] !== '/index.php') {
   http_response_code(404);
@@ -533,7 +540,7 @@ if ($url_path == '/customers/customer') {
           <div>
             <label class="form-label">
               Hourly Rate:
-              <input class="form-control" type="number" name="hourly_rate">
+              <input class="form-control" type="number" step=".01" name="hourly_rate">
             </label>
           </div>
           <div>
@@ -600,7 +607,87 @@ if ($url_path == '/customers/customer') {
           <a href="/customers/customer?id=<?php echo $line["customer_id"]; ?>"><?php echo $line["customer_name"] ?></a>
         </div>
         <div>
-          Hourly Rate: £<?php echo number_format((float)$line["hourly_rate"], 2, '.', ''); ?> 
+          Hourly Rate: £<?php echo number_format((float)$line["hourly_rate"], 2, '.', ''); ?>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>
+                Item
+              </th>
+              <th>
+                Status
+              </th>
+              <th>
+                Hours Logged
+              </th>
+              <th>
+                Amount
+              </th>
+
+              <th>
+
+              </th>
+
+            </tr>
+          </thead>
+          <tbody id="project-line-items-tbody">
+            <?php
+            $query = "SELECT id, name, status FROM project_line_item WHERE user_id = $1 AND project_id = $2 ORDER BY created_at ASC";
+            $params = [$_SESSION["id"], $project_id];
+            $result = pg_query_params($dbconn, $query, $params);
+
+            while ($row = pg_fetch_row($result, null, PGSQL_ASSOC)) { ?>
+              <tr>
+                <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" name="item_name" value="<?php echo $row["name"] ?>" hx-post="/project-line-item/name" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
+                <td>
+                  <select class="form-select" name="status">
+                    <option <?php if ($row["status"] == "To Do") echo "selected" ?>>
+                      To Do
+                    </option>
+                    <option <?php if ($row["status"] == "In Progress") echo "selected" ?>>
+                      In Progress
+                    </option>
+                    <option>
+                      Testing
+                    </option>
+                    <option>
+                      Done
+                    </option>
+                    <option>
+                      Blocked
+                    </option>
+                  </select>
+                </td>
+                <td>
+                  14.5
+                </td>
+                <td>
+                  £362.50
+                </td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                      Options
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item" href="#">Add payment</a></li>
+                      <li><a class="dropdown-item" href="#">Log time</a></li>
+                      <li><a class="dropdown-item" href="#">Delete</a></li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            <?php } ?>
+
+          </tbody>
+        </table>
+        <div class="d-flex justify-content-end">
+          <form hx-post="/components/project-line-items" hx-target="#project-line-items-tbody" hx-swap="afterend">
+            <input type="hidden" name="customer_id" value="<?php echo $customer_id; ?>">
+            <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
+            <button class="btn btn-primary">New</button>
+          </form>
         </div>
       <?php }
     } else {
