@@ -1,13 +1,20 @@
 <?php
 
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
-  http_response_code(405);
+$url_parts = explode('?', $_SERVER['REQUEST_URI']);
+$url_path = $url_parts[0];
+
+session_start();
+
+if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
+  header('Location: /auth/signin.php');
   die();
 }
 
+$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+
 $query = "INSERT INTO project_line_item (name, user_id, customer_id, project_id) 
   VALUES ($1, $2, $3, $4) 
-  RETURNING id";
+  RETURNING id, name";
 
 $params = [
   "",
@@ -31,7 +38,7 @@ pg_close($dbconn);
 ?>
 
 <tr>
-<td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" name="item_name" value="<?php echo $row["name"] ?>" hx-post="/project-line-item/name" hx-trigger="keyup changed delay:500ms" hx-include="closest input[name='item_id']"></td>
+<td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" name="item_name" value="<?php echo $row["name"] ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
   <td>
     <select class="form-select">
       <option selected>
