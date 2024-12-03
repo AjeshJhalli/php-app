@@ -116,21 +116,21 @@ pg_free_result($result);
           while ($row = pg_fetch_row($result, null, PGSQL_ASSOC)) { ?>
             <tr>
               <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" name="item_name" value="<?php echo $row["name"] ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
-              <td>
-                <select class="form-select" name="status">
-                  <option <?php if ($row["status"] == "To Do") echo "selected" ?>>
+              <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>">
+                <select class="form-select" name="item_status" hx-post="/project-line-item/status.php" hx-swap="none" hx-include="previous input">
+                  <option value="To Do" <?php if ($row["status"] == "To Do") echo "selected" ?>>
                     To Do
                   </option>
-                  <option <?php if ($row["status"] == "In Progress") echo "selected" ?>>
+                  <option value="In Progress" <?php if ($row["status"] == "In Progress") echo "selected" ?>>
                     In Progress
                   </option>
-                  <option>
+                  <option value="Testing" <?php if ($row["status"] == "Testing") echo "selected" ?>>
                     Testing
                   </option>
-                  <option>
+                  <option value="Done" <?php if ($row["status"] == "Done") echo "selected" ?>>
                     Done
                   </option>
-                  <option>
+                  <option value="Blocked" <?php if ($row["status"] == "Blocked") echo "selected" ?>>
                     Blocked
                   </option>
                 </select>
