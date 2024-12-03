@@ -58,8 +58,8 @@ pg_close($dbconn);
       </option>
     </select>
   </td>
-  <td></td>
-  <td></td>
+  <td>0</td>
+  <td>£0.00</td>
   <td>
     <div class="dropdown">
       <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">

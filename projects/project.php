@@ -136,10 +136,10 @@ pg_free_result($result);
                 </select>
               </td>
               <td>
-                14.5
+                0
               </td>
               <td>
-                £362.50
+                £0.00
               </td>
               <td>
                 <div class="dropdown">
@@ -147,9 +147,8 @@ pg_free_result($result);
                     Options
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Add payment</a></li>
-                    <li><a class="dropdown-item" href="#">Log time</a></li>
-                    <li><a class="dropdown-item" href="#">Delete</a></li>
+                    <li><a class="dropdown-item" onclick="alert('This feature is not yet available')">Log time</a></li>
+                    <li><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><a class="dropdown-item" hx-delete="/project-line-item/delete.php?id=<?php echo $row["id"]; ?>" hx-include="previous input" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Are you sure you want to delete this line item?">Delete</a></li>
                   </ul>
                 </div>
               </td>
@@ -158,7 +157,7 @@ pg_free_result($result);
         </tbody>
       </table>
       <div class="d-flex justify-content-end">
-        <form hx-post="/components/project-line-items.php" hx-target="#project-line-items-tbody" hx-swap="afterend">
+        <form hx-post="/components/project-line-items.php" hx-target="#project-line-items-tbody" hx-swap="beforeend">
           <input type="hidden" name="customer_id" value="<?php echo $customer_id; ?>">
           <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
           <button class="btn btn-primary">New</button>
