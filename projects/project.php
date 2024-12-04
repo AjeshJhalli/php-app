@@ -45,7 +45,16 @@ pg_free_result($result);
 <!DOCTYPE html>
 <html>
 <?php include "../head.html" ?>
+
 <body>
+  <script>
+    function toggleCheckboxes(mainCheckbox) {
+      const checkboxes = document.getElementsByClassName('line-item-checkbox');
+      for (let i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = mainCheckbox.checked;
+      }
+    }
+  </script>
   <?php
   $uri_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
   $uri_segments = explode('/', $uri_path);
@@ -93,17 +102,21 @@ pg_free_result($result);
       <table class="table">
         <thead>
           <tr>
+            <th><input type="checkbox" name="line-item-head-checkbox" onchange="toggleCheckboxes(this)"></th>
             <th>
               Item
             </th>
             <th>
               Status
             </th>
-            <th>
+            <th style="text-align: right; width: 300px;">
               Hours Logged
             </th>
-            <th>
+            <th style="text-align: right;">
               Amount
+            </th>
+            <th>
+              Invoice
             </th>
             <th>
             </th>
@@ -117,6 +130,9 @@ pg_free_result($result);
 
           while ($row = pg_fetch_row($result, null, PGSQL_ASSOC)) { ?>
             <tr>
+              <td>
+                <input class="line-item-checkbox" type="checkbox" name="line-item-<?php echo $row["id"] ?>-checkbox">
+              </td>
               <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" name="item_name" value="<?php echo $row["name"] ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
               <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>">
                 <select class="form-select" name="item_status" hx-post="/project-line-item/status.php" hx-swap="none" hx-include="previous input">
@@ -137,9 +153,12 @@ pg_free_result($result);
                   </option>
                 </select>
               </td>
-              <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" type="number" name="hours_logged" value="<?php echo $row["hours_logged"] ?>" hx-post="/project-line-item/hours_logged.php" hx-trigger="keyup changed delay:200ms, change changed delay:200ms" hx-include="closest td" hx-target="next td"><input type="hidden" name="hourly_rate" value="<?php echo $hourly_rate; ?>"></td>
-              <td id="line-item-<?php echo $row["id"] ?>">
+              <td class="d-flex justify-content-end" style="width: 300px;"><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" style="width: 100px;" type="number" name="hours_logged" value="<?php echo $row["hours_logged"] ?>" hx-post="/project-line-item/hours_logged.php" hx-trigger="keyup changed delay:200ms, change changed delay:200ms" hx-include="closest td" hx-target="next td"><input type="hidden" name="hourly_rate" value="<?php echo $hourly_rate; ?>"></td>
+              <td id="line-item-<?php echo $row["id"] ?>" align="right">
                 £<?php echo number_format((float)($hourly_rate * $row["hours_logged"]), 2, '.', ''); ?>
+              </td>
+              <td>
+
               </td>
               <td>
                 <div class="dropdown">
