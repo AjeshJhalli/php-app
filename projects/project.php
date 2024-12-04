@@ -36,6 +36,8 @@ if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
 
 $customer_id = $line["customer_id"];
 
+$hourly_rate = number_format((float)$line["hourly_rate"], 2, '.', '');
+
 pg_free_result($result);
 
 ?>
@@ -57,8 +59,8 @@ pg_free_result($result);
       </ol>
     </nav>
     <div class="btn-group" role="group">
-      <a class="btn btn-outline-primary" href="?id=<?php echo $project_id ?>&mode=edit">Edit</a>
-      <button class="btn btn-outline-primary" hx-delete="" hx-confirm="Are you sure you want to delete this project?">
+      <a class="btn btn-primary" href="?id=<?php echo $project_id ?>&mode=edit">Edit</a>
+      <button class="btn btn-primary" hx-delete="" hx-confirm="Are you sure you want to delete this project?">
         Delete
       </button>
     </div>
@@ -86,7 +88,7 @@ pg_free_result($result);
         <a href="/customers/customer.php?id=<?php echo $line["customer_id"]; ?>"><?php echo $line["customer_name"] ?></a>
       </div>
       <div>
-        Hourly Rate: £<?php echo number_format((float)$line["hourly_rate"], 2, '.', ''); ?>
+        Hourly Rate: £<?php echo $hourly_rate ?>
       </div>
       <table class="table">
         <thead>
@@ -109,7 +111,7 @@ pg_free_result($result);
         </thead>
         <tbody id="project-line-items-tbody">
           <?php
-          $query = "SELECT id, name, status FROM project_line_item WHERE user_id = $1 AND project_id = $2 ORDER BY created_at ASC";
+          $query = "SELECT id, name, status, hours_logged FROM project_line_item WHERE user_id = $1 AND project_id = $2 ORDER BY created_at ASC";
           $params = [$_SESSION["id"], $project_id];
           $result = pg_query_params($dbconn, $query, $params);
 
@@ -135,11 +137,9 @@ pg_free_result($result);
                   </option>
                 </select>
               </td>
-              <td>
-                0
-              </td>
-              <td>
-                £0.00
+              <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" type="number" name="hours_logged" value="<?php echo $row["hours_logged"] ?>" hx-post="/project-line-item/hours_logged.php" hx-trigger="keyup changed delay:200ms, change changed delay:200ms" hx-include="closest td" hx-target="next td"><input type="hidden" name="hourly_rate" value="<?php echo $hourly_rate; ?>"></td>
+              <td id="line-item-<?php echo $row["id"] ?>">
+                £<?php echo number_format((float)($hourly_rate * $row["hours_logged"]), 2, '.', ''); ?>
               </td>
               <td>
                 <div class="dropdown">
@@ -147,7 +147,6 @@ pg_free_result($result);
                     Options
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" onclick="alert('This feature is not yet available')">Log time</a></li>
                     <li><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><a class="dropdown-item" hx-delete="/project-line-item/delete.php?id=<?php echo $row["id"]; ?>" hx-include="previous input" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Are you sure you want to delete this line item?">Delete</a></li>
                   </ul>
                 </div>

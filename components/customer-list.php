@@ -1,5 +1,7 @@
 <?php
 
+include "../config.php";
+
 $url_parts = explode('?', $_SERVER['REQUEST_URI']);
 $url_path = $url_parts[0];
 
@@ -10,7 +12,7 @@ if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
   die();
 }
 
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+$dbconn = pg_connect($db_connection_string) or die('Could not connect: ' . pg_last_error());
 
 if (isset($_GET['search'])) {
   $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';

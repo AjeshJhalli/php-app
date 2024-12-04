@@ -13,15 +13,10 @@ $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PG
 
 <!DOCTYPE html>
 <html>
-
 <?php include "../head.html" ?>
 
 <body>
-  <?php
-  $uri_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-  $uri_segments = explode('/', $uri_path);
-  include "../nav.php";
-  ?>
+  <?php include "../nav.php"; ?>
   <main class="container my-5">
     <h1>Sign In</h1>
     <form class="needs-validation" method="POST">
