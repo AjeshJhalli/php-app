@@ -50,8 +50,36 @@ pg_free_result($result);
   <script>
     function toggleCheckboxes(mainCheckbox) {
       const checkboxes = document.getElementsByClassName('line-item-checkbox');
+      let checkedCount = 0;
       for (let i = 0; i < checkboxes.length; i++) {
         checkboxes[i].checked = mainCheckbox.checked;
+        checkedCount++;
+      }
+
+      const buttonInvoice = document.getElementById('button-invoice');
+      buttonInvoice.hidden = !mainCheckbox.checked;
+
+      if (!buttonInvoice.hidden) {
+        buttonInvoice.innerText = `Invoice Selected Items (${checkedCount})`;
+      }
+    }
+    function toggleCheckbox() {
+      const checkboxes = document.getElementsByClassName('line-item-checkbox');
+      
+      let checkedCount = 0;
+      for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+          checkedCount++;
+        }
+      }
+
+      document.getElementById('line-item-head-checkbox').checked = checkedCount && true;
+    
+      const buttonInvoice = document.getElementById('button-invoice');
+      buttonInvoice.hidden = !checkedCount;
+
+      if (!buttonInvoice.hidden) {
+        buttonInvoice.innerText = `Invoice Selected Items (${checkedCount})`;
       }
     }
   </script>
@@ -92,17 +120,22 @@ pg_free_result($result);
         <button class="btn btn-primary">Save</button>
       </form>
     <?php } else { ?>
-      <div>
-        Customer:
-        <a href="/customers/customer.php?id=<?php echo $line["customer_id"]; ?>"><?php echo $line["customer_name"] ?></a>
-      </div>
-      <div>
-        Hourly Rate: £<?php echo $hourly_rate ?>
+      <div class="d-flex justify-content-between pb-4 align-items-start">
+        <div>
+          <div>
+            Customer:
+            <a href="/customers/customer.php?id=<?php echo $line["customer_id"]; ?>"><?php echo $line["customer_name"] ?></a>
+          </div>
+          <div>
+            Hourly Rate: £<?php echo $hourly_rate ?>
+          </div>
+        </div>
+        <button id="button-invoice" class="btn btn-secondary" hidden onclick="alert('This feature is not yet available')">Invoice Selected Items</button>
       </div>
       <table class="table">
         <thead>
           <tr>
-            <th><input type="checkbox" name="line-item-head-checkbox" onchange="toggleCheckboxes(this)"></th>
+            <th><input type="checkbox" id="line-item-head-checkbox" onchange="toggleCheckboxes(this)"></th>
             <th>
               Item
             </th>
@@ -131,7 +164,7 @@ pg_free_result($result);
           while ($row = pg_fetch_row($result, null, PGSQL_ASSOC)) { ?>
             <tr>
               <td>
-                <input class="line-item-checkbox" type="checkbox" name="line-item-<?php echo $row["id"] ?>-checkbox">
+                <input class="line-item-checkbox" type="checkbox" name="line-item-<?php echo $row["id"] ?>-checkbox" onchange="toggleCheckbox()">
               </td>
               <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" name="item_name" value="<?php echo $row["name"] ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
               <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>">
