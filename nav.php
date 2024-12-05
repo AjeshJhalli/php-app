@@ -41,6 +41,13 @@ $uri_segments = explode('/', $uri_path);
               <i class="bi bi-people"></i><span class="ms-1">Projects</span>
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link d-flex align-items-center <?php if ($uri_segments[1] === "invoices.php" || $uri_segments[2] === "invoice.php") {
+                                                            echo "active";
+                                                          } ?>" aria-current="page" href="/invoices.php">
+              <i class="bi bi-people"></i><span class="ms-1">Invoices</span>
+            </a>
+          </li>
         </ul>
 
 
