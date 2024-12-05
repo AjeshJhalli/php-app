@@ -30,14 +30,12 @@ $uri_segments = explode('/', $uri_path);
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link d-flex align-items-center <?php if ($uri_segments[1] === "customers") {
-                                                            echo "active";
-                                                          } ?>" aria-current="page" href="/customers.php">
+            <a class="nav-link d-flex align-items-center <?php echo $url_segments[1]; if ($uri_segments[1] === "customers.php" || $uri_segments[2] === "customer.php") echo "active"; ?>" aria-current="page" href="/customers.php">
               <i class="bi bi-people"></i><span class="ms-1">Customers</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link d-flex align-items-center <?php if ($uri_segments[1] === "projects") {
+            <a class="nav-link d-flex align-items-center <?php if ($uri_segments[1] === "projects.php" || $uri_segments[2] === "project.php") {
                                                             echo "active";
                                                           } ?>" aria-current="page" href="/projects.php">
               <i class="bi bi-people"></i><span class="ms-1">Projects</span>
