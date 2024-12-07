@@ -49,6 +49,16 @@ $customer_id = $_GET['customer_id'];
       ?>
     </div>
   <?php } else if ($tab == "invoices") {
-    echo "the invoices";
-  } ?>
+    $query = "SELECT id, status FROM sale WHERE customer_id = " . $_GET["customer_id"] . " AND user_id = '" . $_SESSION['id'] . "'";
+    $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+
+  ?>
+    <div class="list-group mt-2">
+      <?php
+      while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) {
+        echo "<a class='list-group-item list-group-item-action' href='/invoices/invoice.php?id={$line['id']}'>Invoice #{$line['id']} - {$line['status']}</a>";
+      }
+      ?>
+    </div>
+  <?php } ?>
 </div>

@@ -23,8 +23,8 @@ $project_id = $_POST["project_id"];
 $item_ids = explode(',', $_POST["item_ids"]);
 
 // Get customer ID
-$result = pg_prepare($dbconn, "my_query5", "SELECT customer_id, hourly_rate FROM project WHERE id = $1 AND user_id = $2");
-$result = pg_execute($dbconn, "my_query5", array($project_id, $user_id));
+$result = pg_prepare($dbconn, "", "SELECT customer_id, hourly_rate FROM project WHERE id = $1 AND user_id = $2");
+$result = pg_execute($dbconn, "", array($project_id, $user_id));
 $row = pg_fetch_row($result);
 $customer_id = $row[0];
 $hourly_rate = $row[1];
