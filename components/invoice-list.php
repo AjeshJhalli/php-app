@@ -14,18 +14,19 @@ if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
 
 $dbconn = pg_connect($db_connection_string) or die('Could not connect: ' . pg_last_error());
 
-if (isset($_GET['search'])) {
-  $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
-  $query = "SELECT id, status FROM sale WHERE user_id = $1";
-  $params = [$_SESSION['id']];
-  $stmt = pg_prepare($dbconn, "", $query);
-  $result = pg_execute($dbconn, "", $params);
-} else {
-  $query = "SELECT id, status FROM sale WHERE user_id = $1";
-  $params = [$_SESSION['id']];
-  $stmt = pg_prepare($dbconn, "", $query);
-  $result = pg_execute($dbconn, "", $params);
-}
+$query = "
+  SELECT sale.id AS id, sale.status AS status, customer.name AS customer_name, project.name AS project_name
+  FROM sale
+  LEFT JOIN project
+  ON project.id = sale.project_id
+  LEFT JOIN customer
+  ON customer.id = sale.customer_id
+  WHERE sale.user_id = $1
+";
+
+$params = [$_SESSION['id']];
+$stmt = pg_prepare($dbconn, "", $query);
+$result = pg_execute($dbconn, "", $params);
 
 if (!$result) {
   die('Query failed: ' . pg_last_error());
@@ -37,10 +38,13 @@ while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
       <?php echo $line['id']; ?>
     </td>
     <td>
-      <?php echo $line['status']; ?>
+      <?php echo $line['customer_name']; ?>
     </td>
     <td>
-      100
+      <?php echo $line['project_name']; ?>
+    </td>
+    <td>
+      <?php echo $line['status']; ?>
     </td>
     <td>
       100

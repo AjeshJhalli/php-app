@@ -63,9 +63,10 @@ pg_free_result($result);
         buttonInvoice.innerText = `Invoice Selected Items (${checkedCount})`;
       }
     }
+
     function toggleCheckbox() {
       const checkboxes = document.getElementsByClassName('line-item-checkbox');
-      
+
       let checkedCount = 0;
       for (let i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i].checked) {
@@ -74,13 +75,43 @@ pg_free_result($result);
       }
 
       document.getElementById('line-item-head-checkbox').checked = checkedCount && true;
-    
+
       const buttonInvoice = document.getElementById('button-invoice');
       buttonInvoice.hidden = !checkedCount;
 
       if (!buttonInvoice.hidden) {
         buttonInvoice.innerText = `Invoice Selected Items (${checkedCount})`;
       }
+    }
+
+    function invoiceSelectedLineItems() {
+
+      const selectedIds = $('.line-item-checkbox:checked')
+        .map(function() {
+          return $(this).closest('tr').find('input[name="item_id"]').val();
+        })
+        .get();
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const projectId = searchParams.get('id');
+
+      console.log(projectId);
+      console.log(selectedIds);
+
+      fetch("/api/create-invoice-from-project.php", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          project_id: projectId,
+          item_ids: selectedIds.join(',')
+        }),
+        credentials: 'include',
+        redirect: 'follow'
+      }).then(data => data.text())
+      .then(id => { window.location.href = `/invoices/invoice.php?id=${id}`; });
+
     }
   </script>
   <?php
@@ -130,7 +161,7 @@ pg_free_result($result);
             Hourly Rate: £<?php echo $hourly_rate ?>
           </div>
         </div>
-        <button id="button-invoice" class="btn btn-secondary" hidden onclick="alert('This feature is not yet available')">Invoice Selected Items</button>
+        <button id="button-invoice" class="btn btn-secondary" hidden onclick="invoiceSelectedLineItems()">Invoice Selected Items</button>
       </div>
       <table class="table">
         <thead>

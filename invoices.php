@@ -45,9 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <thead>
           <tr>
             <th scope="col">Invoice Number</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Project</th>
             <th scope="col">Status</th>
             <th scope="col">Amount</th>
-            <th scope="col">Balance</th>
           </tr>
         </thead>
         <tbody id="project-tbody">
