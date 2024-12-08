@@ -53,29 +53,29 @@ pg_close($dbconn);
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/customers.php">Customers</a></li>
-        <li class="breadcrumb-item active" aria-current="page"><?php echo $line["name"]; ?></li>
+        <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($line["name"]); ?></li>
       </ol>
     </nav>
     <div class="btn-group" role="group">
-      <a class="btn btn-outline-primary" href="?id=<?php echo $customer_id ?>&mode=edit">Edit</a>
+      <a class="btn btn-outline-primary" href="?id=<?php echo htmlspecialchars($customer_id) ?>&mode=edit">Edit</a>
       <button class="btn btn-outline-primary" hx-delete="" hx-confirm="Are you sure you want to delete this customer?">
         Delete
       </button>
     </div>
-    <h2 class="py-4"><?php echo $line['name'] ?></h2>
+    <h2 class="py-4"><?php echo htmlspecialchars($line['name']) ?></h2>
     <?php if (isset($_GET['mode']) && $_GET['mode'] === 'edit') { ?>
       <form method="POST">
         <div>
           <label class="form-label">
             Name:
-            <input class="form-control" type="text" name="name" value="<?php echo $line['name'] ?>">
+            <input class="form-control" type="text" name="name" value="<?php echo htmlspecialchars($line['name']) ?>" required>
           </label>
         </div>
-        <a class="btn btn-primary" href="?id=<?php echo $customer_id ?>">Cancel</a>
+        <a class="btn btn-primary" href="?id=<?php echo htmlspecialchars($customer_id); ?>">Cancel</a>
         <button class="btn btn-primary">Save</button>
       </form>
     <?php } else { ?>
-      <div id="customer-tabs" hx-get="/components/customer-tabs.php?tab=projects&customer_id=<?php echo $customer_id; ?>" hx-trigger="load"></div>
+      <div id="customer-tabs" hx-get="/components/customer-tabs.php?tab=projects&customer_id=<?php echo htmlspecialchars($customer_id); ?>" hx-trigger="load"></div>
     <?php } ?>
   </main>
 </body>

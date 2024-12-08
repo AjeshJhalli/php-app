@@ -6,7 +6,6 @@ $url_path = $url_parts[0];
 session_start();
 
 if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
-  header('Location: /auth/signin.php');
   die();
 }
 

@@ -33,20 +33,20 @@ if (!$result) {
 }
 
 while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
-  <tr onclick="window.location.href = '/invoices/invoice.php?id=<?php echo $line["id"]; ?>'">
-    <td>
-      <?php echo $line['id']; ?>
+  <tr onclick="window.location.href = '/invoices/invoice.php?id=<?php echo htmlspecialchars($line["id"]); ?>'">
+    <td style="text-align: right; padding-right: 40px;">
+      <?php echo htmlspecialchars($line['id']); ?>
     </td>
     <td>
-      <?php echo $line['customer_name']; ?>
+      <?php echo htmlspecialchars($line['customer_name']); ?>
     </td>
     <td>
-      <?php echo $line['project_name']; ?>
+      <?php echo htmlspecialchars($line['project_name']); ?>
     </td>
     <td>
-      <?php echo $line['status']; ?>
+      <?php echo htmlspecialchars($line['status']); ?>
     </td>
-    <td>
+    <td style="text-align: right; padding-right: 40px;">
       100
     </td>
   </tr>
@@ -54,4 +54,3 @@ while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
 
 pg_free_result($result);
 pg_close($dbconn);
-die();

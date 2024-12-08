@@ -1,5 +1,7 @@
 <?php
 
+include "../functions/format_currency.php";
+
 $url_parts = explode('?', $_SERVER['REQUEST_URI']);
 $url_path = $url_parts[0];
 
@@ -43,10 +45,10 @@ pg_free_result($result);
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/invoices.php">Invoices</a></li>
-        <li class="breadcrumb-item active" aria-current="page"><?php echo "#" . $invoice_id ?></li>
+        <li class="breadcrumb-item active" aria-current="page"><?php echo "#" . htmlspecialchars($invoice_id) ?></li>
       </ol>
     </nav>
-    <h2 class="py-4"><?php echo $line['status'] ?></h2>
+    <h2 class="py-4"><?php echo htmlspecialchars($line['status']) ?></h2>
     <table class="table">
       <thead>
         <th>
@@ -67,18 +69,14 @@ pg_free_result($result);
 
         $result = pg_query_params($dbconn, "SELECT name, quantity, unit_amount FROM sale_line_item WHERE sale_id = $1 AND user_id = $2", [$invoice_id, $user_id]);
 
-        while ($line_item = pg_fetch_assoc($result)) {
-        ?>
+        while ($line_item = pg_fetch_assoc($result)) { ?>
           <tr>
-            <td><?php echo $line_item["name"]; ?></td>
-            <td><?php echo $line_item["quantity"]; ?></td>
-            <td>£<?php echo $line_item["unit_amount"]; ?></td>
-            <td>£<?php echo $line_item["quantity"] * $line_item["unit_amount"]; ?></td>
+            <td><?php echo htmlspecialchars($line_item["name"]); ?></td>
+            <td><?php echo htmlspecialchars($line_item["quantity"]); ?></td>
+            <td><?php echo format_currency(htmlspecialchars($line_item["unit_amount"])); ?></td>
+            <td><?php echo format_currency(htmlspecialchars($line_item["quantity"] * $line_item["unit_amount"])); ?></td>
           </tr>
-        <?php
-        }
-
-        ?>
+        <?php } ?>
       </tbody>
     </table>
   </main>

@@ -1,5 +1,7 @@
 <?php
 
+include "../functions/format_currency.php";
+
 $url_parts = explode('?', $_SERVER['REQUEST_URI']);
 $url_path = $url_parts[0];
 
@@ -31,4 +33,4 @@ $result = pg_query_params($dbconn, $query, $params);
 
 pg_close($dbconn);
 
-echo "£" . number_format((float)($hours_logged * $hourly_rate), 2, '.', '');
+echo format_currency($hours_logged * $hourly_rate);

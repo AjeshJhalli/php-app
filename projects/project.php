@@ -1,5 +1,7 @@
 <?php
 
+include "../functions/format_currency.php";
+
 $url_parts = explode('?', $_SERVER['REQUEST_URI']);
 $url_path = $url_parts[0];
 
@@ -36,7 +38,7 @@ if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
 
 $customer_id = $line["customer_id"];
 
-$hourly_rate = number_format((float)$line["hourly_rate"], 2, '.', '');
+$hourly_rate = number_format((float)htmlspecialchars($line["hourly_rate"]), 2, '.', '');
 
 pg_free_result($result);
 
@@ -99,18 +101,20 @@ pg_free_result($result);
       console.log(selectedIds);
 
       fetch("/api/create-invoice-from-project.php", {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-          project_id: projectId,
-          item_ids: selectedIds.join(',')
-        }),
-        credentials: 'include',
-        redirect: 'follow'
-      }).then(data => data.text())
-      .then(id => { window.location.href = `/invoices/invoice.php?id=${id}`; });
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            project_id: projectId,
+            item_ids: selectedIds.join(',')
+          }),
+          credentials: 'include',
+          redirect: 'follow'
+        }).then(data => data.text())
+        .then(id => {
+          window.location.href = `/invoices/invoice.php?id=${id}`;
+        });
 
     }
   </script>
@@ -123,31 +127,31 @@ pg_free_result($result);
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/projects.php">Projects</a></li>
-        <li class="breadcrumb-item active" aria-current="page"><?php echo $line["project_name"]; ?></li>
+        <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($line["project_name"]); ?></li>
       </ol>
     </nav>
     <div class="btn-group" role="group">
-      <a class="btn btn-primary" href="?id=<?php echo $project_id ?>&mode=edit">Edit</a>
+      <a class="btn btn-primary" href="?id=<?php echo htmlspecialchars($project_id) ?>&mode=edit">Edit</a>
       <button class="btn btn-primary" hx-delete="" hx-confirm="Are you sure you want to delete this project?">
         Delete
       </button>
     </div>
-    <h2 class="py-4"><?php echo $line['project_name'] ?></h2>
+    <h2 class="py-4"><?php echo htmlspecialchars($line['project_name']) ?></h2>
     <?php if (isset($_GET['mode']) && $_GET['mode'] === 'edit') { ?>
       <form method="POST">
         <div>
           <label class="form-label">
             Project Name:
-            <input class="form-control" type="text" name="name" value="<?php echo $line['project_name'] ?>">
+            <input class="form-control" type="text" name="name" value="<?php echo htmlspecialchars($line['project_name']) ?>">
           </label>
         </div>
         <div>
           <label class="form-label">
             Hourly Rate:
-            <input class="form-control" type="number" step=".01" name="hourly_rate" value="<?php echo $line["hourly_rate"] ?>">
+            <input class="form-control" type="number" step=".01" name="hourly_rate" value="<?php echo htmlspecialchars($line["hourly_rate"]) ?>">
           </label>
         </div>
-        <a class="btn btn-primary" href="?id=<?php echo $project_id ?>">Cancel</a>
+        <a class="btn btn-primary" href="?id=<?php echo htmlspecialchars($project_id) ?>">Cancel</a>
         <button class="btn btn-primary">Save</button>
       </form>
     <?php } else { ?>
@@ -155,7 +159,7 @@ pg_free_result($result);
         <div>
           <div>
             Customer:
-            <a href="/customers/customer.php?id=<?php echo $line["customer_id"]; ?>"><?php echo $line["customer_name"] ?></a>
+            <a href="/customers/customer.php?id=<?php echo htmlspecialchars($line["customer_id"]); ?>"><?php echo htmlspecialchars($line["customer_name"]) ?></a>
           </div>
           <div>
             Hourly Rate: £<?php echo $hourly_rate ?>
@@ -195,10 +199,10 @@ pg_free_result($result);
           while ($row = pg_fetch_row($result, null, PGSQL_ASSOC)) { ?>
             <tr>
               <td>
-                <input class="line-item-checkbox" type="checkbox" name="line-item-<?php echo $row["id"] ?>-checkbox" onchange="toggleCheckbox()">
+                <input class="line-item-checkbox" type="checkbox" name="line-item-<?php echo htmlspecialchars($row["id"]) ?>-checkbox" onchange="toggleCheckbox()">
               </td>
-              <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" name="item_name" value="<?php echo $row["name"] ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
-              <td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>">
+              <td><input type="hidden" name="item_id" value="<?php echo htmlspecialchars($row["id"]) ?>"><input class="form-control" name="item_name" value="<?php echo htmlspecialchars($row["name"]) ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
+              <td><input type="hidden" name="item_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
                 <select class="form-select" name="item_status" hx-post="/project-line-item/status.php" hx-swap="none" hx-include="previous input">
                   <option value="To Do" <?php if ($row["status"] == "To Do") echo "selected" ?>>
                     To Do
@@ -217,12 +221,11 @@ pg_free_result($result);
                   </option>
                 </select>
               </td>
-              <td class="d-flex justify-content-end" style="width: 300px;"><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" style="width: 100px;" type="number" name="hours_logged" value="<?php echo $row["hours_logged"] ?>" hx-post="/project-line-item/hours_logged.php" hx-trigger="keyup changed delay:200ms, change changed delay:200ms" hx-include="closest td" hx-target="next td"><input type="hidden" name="hourly_rate" value="<?php echo $hourly_rate; ?>"></td>
-              <td id="line-item-<?php echo $row["id"] ?>" align="right">
-                £<?php echo number_format((float)($hourly_rate * $row["hours_logged"]), 2, '.', ''); ?>
+              <td class="d-flex justify-content-end" style="width: 300px;"><input type="hidden" name="item_id" value="<?php echo htmlspecialchars($row["id"]) ?>"><input class="form-control" style="width: 100px;" type="number" name="hours_logged" value="<?php echo htmlspecialchars($row["hours_logged"]) ?>" hx-post="/project-line-item/hours_logged.php" hx-trigger="keyup changed delay:200ms, change changed delay:200ms" hx-include="closest td" hx-target="next td"><input type="hidden" name="hourly_rate" value="<?php echo htmlspecialchars($hourly_rate); ?>"></td>
+              <td id="line-item-<?php echo htmlspecialchars($row["id"]) ?>" align="right">
+                <?php echo format_currency($hourly_rate * $row["hours_logged"]); ?>
               </td>
               <td>
-
               </td>
               <td>
                 <div class="dropdown">
@@ -230,7 +233,7 @@ pg_free_result($result);
                     Options
                   </button>
                   <ul class="dropdown-menu">
-                    <li><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><a class="dropdown-item" hx-delete="/project-line-item/delete.php?id=<?php echo $row["id"]; ?>" hx-include="previous input" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Are you sure you want to delete this line item?">Delete</a></li>
+                    <li><input type="hidden" name="item_id" value="<?php echo $htmlspecialchars($row["id"]); ?>"><a class="dropdown-item" hx-delete="/project-line-item/delete.php?id=<?php echo htmlspecialchars($row["id"]); ?>" hx-include="previous input" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Are you sure you want to delete this line item?">Delete</a></li>
                   </ul>
                 </div>
               </td>
@@ -240,8 +243,8 @@ pg_free_result($result);
       </table>
       <div class="d-flex justify-content-end">
         <form hx-post="/components/project-line-items.php" hx-target="#project-line-items-tbody" hx-swap="beforeend">
-          <input type="hidden" name="customer_id" value="<?php echo $customer_id; ?>">
-          <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
+          <input type="hidden" name="customer_id" value="<?php echo htmlspecialchars($customer_id); ?>">
+          <input type="hidden" name="project_id" value="<?php echo htmlspecialchars($project_id); ?>">
           <button class="btn btn-primary">New</button>
         </form>
       </div>

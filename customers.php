@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div>
           <label class="form-label">
             Name:
-            <input class="form-control" type="text" name="name" value="">
+            <input class="form-control" type="text" name="name" value="" required>
           </label>
         </div>
         <div>

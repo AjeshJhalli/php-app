@@ -39,16 +39,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form class="form-inline my-2 my-lg-0 d-flex" hx-get="/components/invoice-list.php" hx-target="#project-tbody" hx-trigger="load, input changed delay:500ms, search">
           <input class="form-control" name="search" type="search" placeholder="Search" aria-label="Search">
         </form>
-        <a class="btn btn-primary" href="?mode=new">New</a>
       </div>
       <table class="table border mt-2 table-hover">
         <thead>
           <tr>
-            <th scope="col">Invoice Number</th>
+            <th scope="col" style="text-align: right; padding-right: 40px; width: 200px;">Invoice Number</th>
             <th scope="col">Customer</th>
             <th scope="col">Project</th>
             <th scope="col">Status</th>
-            <th scope="col">Amount</th>
+            <th scope="col" style="text-align: right; padding-right: 40px; width: 200px;">Amount</th>
           </tr>
         </thead>
         <tbody id="project-tbody">

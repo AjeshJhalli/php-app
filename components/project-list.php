@@ -30,12 +30,12 @@ if (!$result) {
 }
 
 while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
-  <tr onclick="window.location.href = '/projects/project.php?id=<?php echo $line["project_id"]; ?>'">
+  <tr onclick="window.location.href = '/projects/project.php?id=<?php echo htmlspecialchars($line["project_id"]); ?>'">
     <td>
-      <?php echo $line['project_name']; ?>
+      <?php echo htmlspecialchars($line['project_name']); ?>
     </td>
     <td>
-      <?php echo $line['customer_name']; ?>
+      <?php echo htmlspecialchars($line['customer_name']); ?>
     </td>
   </tr>
 <?php }

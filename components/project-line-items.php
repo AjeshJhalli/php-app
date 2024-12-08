@@ -38,7 +38,7 @@ pg_close($dbconn);
 ?>
 
 <tr>
-<td><input type="hidden" name="item_id" value="<?php echo $row["id"] ?>"><input class="form-control" name="item_name" value="<?php echo $row["name"] ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
+<td><input type="hidden" name="item_id" value="<?php echo htmlspecialchars($row["id"]) ?>"><input class="form-control" name="item_name" value="<?php echo htmlspecialchars($row["name"]) ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
   <td>
     <select class="form-select">
       <option selected>
