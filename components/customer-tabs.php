@@ -17,8 +17,8 @@ $customer_id = $_GET['customer_id'];
 
 ?>
 <ul class="nav nav-tabs">
-  <li class="nav-item ">
-    <a class="nav-link disabled" aria-current="page" href="#">Email Addresses</a>
+  <li class="nav-item">
+    <a class="nav-link <?php if ($tab == "email-addresses") echo "active" ?>" id="customer-email-addresses-tab" hx-get="/components/customer-tabs.php?tab=email-addresses&customer_id=<?php echo htmlspecialchars($customer_id); ?>" hx-target="#customer-tabs">Email Addresses</a>
   </li>
   <li class="nav-item">
     <a class="nav-link disabled" href="#">Phone Numbers</a>
@@ -36,10 +36,8 @@ $customer_id = $_GET['customer_id'];
 <div id="tab-content">
   <?php
   if ($tab === "projects") {
-
     $query = "SELECT id, name FROM project WHERE customer_id = " . $_GET["customer_id"] . " AND user_id = '" . $_SESSION['id'] . "'";
     $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
-
   ?>
     <div class="list-group mt-2">
       <?php while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
@@ -60,5 +58,7 @@ $customer_id = $_GET['customer_id'];
         </a>
       <?php } ?>
     </div>
-  <?php } ?>
+  <?php } else if ($tab === "email-addresses") {
+    echo "emails";
+  } ?>
 </div>

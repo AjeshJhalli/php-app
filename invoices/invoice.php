@@ -18,7 +18,7 @@ $invoice_id = $_GET["id"];
 $user_id = $_SESSION["id"];
 
 $query = "
-  SELECT status, sale.customer_id AS customer_id, sale.project_id AS project_id, customer.name AS customer_name, project.name as project_name
+  SELECT status, sale.customer_id AS customer_id, sale.project_id AS project_id, sale.id AS sale_id, customer.name AS customer_name, project.name as project_name
   FROM sale
   LEFT JOIN customer
   ON customer.id = sale.customer_id
@@ -55,10 +55,17 @@ pg_free_result($result);
         <li class="breadcrumb-item active" aria-current="page"><?php echo "#" . htmlspecialchars($invoice_id) ?></li>
       </ol>
     </nav>
-    <h2 class="py-4"><?php echo htmlspecialchars($line['status']) ?></h2>
+    <h2 class="py-4">Invoice #<?php echo htmlspecialchars($line['sale_id']) ?></h2>
     <div class="pb-4">
       <div>Customer: <a href="/customers/customer.php?id=<?php echo htmlspecialchars($line["customer_id"]) ?>"><?php echo htmlspecialchars($line["customer_name"]) ?></a></div>
       <div>Project: <a href="/projects/project.php?id=<?php echo htmlspecialchars($line["project_id"]) ?>"><?php echo htmlspecialchars($line["project_name"]) ?></a></div>
+      <div>Status: <select name="sale_status" hx-post="/invoices/status.php" hx-swap="none" hx-include="next input" class="form-select" style="width: 200px;">
+        <option value="DRAFT" <?php if (htmlspecialchars($line["status"]) === "DRAFT") echo "selected" ?>>DRAFT</option>
+        <option value="APPROVED" <?php if (htmlspecialchars($line["status"]) === "APPROVED") echo "selected" ?>>APPROVED</option>
+        <option value="AWAITING PAYMENT" <?php if (htmlspecialchars($line["status"]) === "AWAITING PAYMENT") echo "selected" ?>>AWAITING PAYMENT</option>
+        <option value="PART PAID" <?php if (htmlspecialchars($line["status"]) === "PART PAID") echo "selected" ?>>PART PAID</option>
+        <option value="PAID" <?php if (htmlspecialchars($line["status"]) === "PAID") echo "selected" ?>>PAID</option>
+      </select><input type="hidden" name="sale_id" value="<?php echo htmlspecialchars($invoice_id); ?>" ></div>
     </div>
     <table class="table">
       <thead>
