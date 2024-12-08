@@ -1,6 +1,7 @@
 <?php
 
 include "../config.php";
+include "../functions/format_currency.php";
 
 $url_parts = explode('?', $_SERVER['REQUEST_URI']);
 $url_path = $url_parts[0];
@@ -15,13 +16,16 @@ if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
 $dbconn = pg_connect($db_connection_string) or die('Could not connect: ' . pg_last_error());
 
 $query = "
-  SELECT sale.id AS id, sale.status AS status, customer.name AS customer_name, project.name AS project_name
+  SELECT sale.id AS id, sale.status AS status, customer.name AS customer_name, project.name AS project_name, SUM(sale_line_item.unit_amount * sale_line_item.quantity) AS amount
   FROM sale
   LEFT JOIN project
   ON project.id = sale.project_id
   LEFT JOIN customer
   ON customer.id = sale.customer_id
+  LEFT JOIN sale_line_item
+  ON sale_line_item.sale_id = sale.id
   WHERE sale.user_id = $1
+  GROUP BY sale.id, customer_name, project_name
 ";
 
 $params = [$_SESSION['id']];
@@ -47,7 +51,7 @@ while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
       <?php echo htmlspecialchars($line['status']); ?>
     </td>
     <td style="text-align: right; padding-right: 40px;">
-      100
+    <?php echo format_currency(htmlspecialchars($line['amount'])); ?>
     </td>
   </tr>
 <?php }

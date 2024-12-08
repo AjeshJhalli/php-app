@@ -17,7 +17,14 @@ $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PG
 $invoice_id = $_GET["id"];
 $user_id = $_SESSION["id"];
 
-$query = "SELECT status FROM sale WHERE id = $1 AND user_id = $2";
+$query = "
+  SELECT status, sale.customer_id AS customer_id, sale.project_id AS project_id, customer.name AS customer_name, project.name as project_name
+  FROM sale
+  LEFT JOIN customer
+  ON customer.id = sale.customer_id
+  LEFT JOIN project
+  ON project.id = sale.project_id
+  WHERE sale.id = $1 AND sale.user_id = $2";
 $params = [$invoice_id, $user_id];
 $result = pg_query_params($dbconn, $query, $params) or die('Query failed: ' . pg_last_error());
 
@@ -49,6 +56,10 @@ pg_free_result($result);
       </ol>
     </nav>
     <h2 class="py-4"><?php echo htmlspecialchars($line['status']) ?></h2>
+    <div class="pb-4">
+      <div>Customer: <a href="/customers/customer.php?id=<?php echo htmlspecialchars($line["customer_id"]) ?>"><?php echo htmlspecialchars($line["customer_name"]) ?></a></div>
+      <div>Project: <a href="/projects/project.php?id=<?php echo htmlspecialchars($line["project_id"]) ?>"><?php echo htmlspecialchars($line["project_name"]) ?></a></div>
+    </div>
     <table class="table">
       <thead>
         <th>
