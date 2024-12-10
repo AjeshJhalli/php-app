@@ -233,7 +233,7 @@ pg_free_result($result);
                     Options
                   </button>
                   <ul class="dropdown-menu">
-                    <li><input type="hidden" name="item_id" value="<?php echo $htmlspecialchars($row["id"]); ?>"><a class="dropdown-item" hx-delete="/project-line-item/delete.php?id=<?php echo htmlspecialchars($row["id"]); ?>" hx-include="previous input" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Are you sure you want to delete this line item?">Delete</a></li>
+                    <li><input type="hidden" name="item_id" value="<?php echo htmlspecialchars($row["id"]); ?>"><a class="dropdown-item" hx-delete="/project-line-item/delete.php?id=<?php echo htmlspecialchars($row["id"]); ?>" hx-include="previous input" hx-target="closest tr" hx-swap="outerHTML" hx-confirm="Are you sure you want to delete this line item?">Delete</a></li>
                   </ul>
                 </div>
               </td>

@@ -36,7 +36,8 @@ $customer_id = $_GET['customer_id'];
 <div id="tab-content">
   <?php
   if ($tab === "projects") {
-    $query = "SELECT id, name FROM project WHERE customer_id = " . $_GET["customer_id"] . " AND user_id = '" . $_SESSION['id'] . "'";
+    $customer_id = $_GET["customer_id"];
+    $query = "SELECT id, name FROM project WHERE customer_id = " . $customer_id . " AND user_id = '" . $_SESSION['id'] . "'";
     $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
   ?>
     <div class="list-group mt-2">
@@ -58,7 +59,54 @@ $customer_id = $_GET['customer_id'];
         </a>
       <?php } ?>
     </div>
-  <?php } else if ($tab === "email-addresses") {
-    echo "emails";
-  } ?>
+  <?php } else if ($tab === "email-addresses") { ?>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email Address</th>
+        </tr>
+      </thead>
+      <tbody id="customer-email-addresses-body">
+        <?php
+
+        $query = "SELECT id, email_address, label FROM email_address WHERE customer_id = $1 AND user_id = $2";
+        $params = [$customer_id, $_SESSION["id"]];
+        $result = pg_query_params($dbconn, $query, $params);
+        while ($row = pg_fetch_assoc($result)) { ?>
+          <tr>
+            <td>
+              <input type="hidden" name="email_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
+              <input class="form-control" name="email_label" value="<?php echo $row["label"] ?>" hx-post="/components/customer-email-addresses/label.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
+            </td>
+            <td>
+              <input type="hidden" name="email_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
+              <input class="form-control" name="email_address" value="<?php echo $row["email_address"] ?>" hx-post="/components/customer-email-addresses/email-address.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
+            </td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                  Options
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <form hx-confirm="Are you sure you want to delete this email address?" hx-delete="/components/customer-email-addresses/delete.php" hx-target="closest tr">
+                      <input type="hidden" name="email_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
+                      <button class="dropdown-item">Delete</button>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        <?php } ?>
+      </tbody>
+    </table>
+    <div class="d-flex justify-content-end">
+      <form hx-post="/components/customer-email-addresses/new.php" hx-target="#customer-email-addresses-body" hx-swap="beforeend">
+        <input type="hidden" name="customer_id" value="<?php echo htmlspecialchars($customer_id); ?>">
+        <button class="btn btn-primary">New</button>
+      </form>
+    </div>
+  <?php } ?>
 </div>

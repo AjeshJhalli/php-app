@@ -75,7 +75,7 @@ pg_close($dbconn);
         <button class="btn btn-primary">Save</button>
       </form>
     <?php } else { ?>
-      <div id="customer-tabs" hx-get="/components/customer-tabs.php?tab=projects&customer_id=<?php echo htmlspecialchars($customer_id); ?>" hx-trigger="load"></div>
+      <div id="customer-tabs" hx-get="/components/customer-tabs.php?tab=email-addresses&customer_id=<?php echo htmlspecialchars($customer_id); ?>" hx-trigger="load"></div>
     <?php } ?>
   </main>
 </body>
