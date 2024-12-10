@@ -65,6 +65,7 @@ $customer_id = $_GET['customer_id'];
         <tr>
           <th>Name</th>
           <th>Email Address</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="customer-email-addresses-body">
