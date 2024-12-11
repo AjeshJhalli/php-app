@@ -127,7 +127,7 @@ $customer_id = $_GET['customer_id'];
       <tbody id="customer-addresses-body">
         <?php
 
-        $query = "SELECT id, line1, line2, city, county, country, postcode FROM address WHERE customer_id = $1 AND user_id = $2";
+        $query = "SELECT id, line1, line2, city, county, country, postcode FROM address WHERE customer_id = $1 AND user_id = $2 ORDER BY created_at ASC";
         $params = [$customer_id, $_SESSION["id"]];
         $result = pg_query_params($dbconn, $query, $params);
         while ($row = pg_fetch_assoc($result)) { ?>
@@ -138,23 +138,23 @@ $customer_id = $_GET['customer_id'];
             </td>
             <td>
               <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
-              <input class="form-control" name="line2" value="<?php echo htmlspecialchars($row["line2"]) ?>" hx-post="/components/customer-addresses/line1.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
+              <input class="form-control" name="line2" value="<?php echo htmlspecialchars($row["line2"]) ?>" hx-post="/components/customer-addresses/line2.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
             </td>
             <td>
               <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
-              <input class="form-control" name="city" value="<?php echo htmlspecialchars($row["city"]) ?>" hx-post="/components/customer-addresses/line1.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
+              <input class="form-control" name="city" value="<?php echo htmlspecialchars($row["city"]) ?>" hx-post="/components/customer-addresses/city.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
             </td>
             <td>
               <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
-              <input class="form-control" name="county" value="<?php echo htmlspecialchars($row["county"]) ?>" hx-post="/components/customer-addresses/line1.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
+              <input class="form-control" name="county" value="<?php echo htmlspecialchars($row["county"]) ?>" hx-post="/components/customer-addresses/county.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
             </td>
             <td>
               <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
-              <input class="form-control" name="country" value="<?php echo htmlspecialchars($row["country"]) ?>" hx-post="/components/customer-addresses/line1.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
+              <input class="form-control" name="country" value="<?php echo htmlspecialchars($row["country"]) ?>" hx-post="/components/customer-addresses/country.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
             </td>
             <td>
               <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
-              <input class="form-control" name="postcode" value="<?php echo htmlspecialchars($row["postcode"]) ?>" hx-post="/components/customer-addresses/line1.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
+              <input class="form-control" name="postcode" value="<?php echo htmlspecialchars($row["postcode"]) ?>" hx-post="/components/customer-addresses/postcode.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input">
             </td>
             <td>
               <div class="dropdown">
@@ -163,8 +163,8 @@ $customer_id = $_GET['customer_id'];
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <form hx-confirm="Are you sure you want to delete this email address?" hx-delete="/components/customer-email-addresses/delete.php" hx-target="closest tr">
-                      <input type="hidden" name="email_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
+                    <form hx-confirm="Are you sure you want to delete this email address?" hx-delete="/components/customer-addresses/delete.php" hx-target="closest tr">
+                      <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
                       <button class="dropdown-item">Delete</button>
                     </form>
                   </li>
