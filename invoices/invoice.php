@@ -59,13 +59,54 @@ pg_free_result($result);
     <div class="pb-4">
       <div>Customer: <a href="/customers/customer.php?id=<?php echo htmlspecialchars($line["customer_id"]) ?>"><?php echo htmlspecialchars($line["customer_name"]) ?></a></div>
       <div>Project: <a href="/projects/project.php?id=<?php echo htmlspecialchars($line["project_id"]) ?>"><?php echo htmlspecialchars($line["project_name"]) ?></a></div>
-      <div>Status: <select name="sale_status" hx-post="/invoices/status.php" hx-swap="none" hx-include="next input" class="form-select" style="width: 200px;">
-        <option value="DRAFT" <?php if (htmlspecialchars($line["status"]) === "DRAFT") echo "selected" ?>>DRAFT</option>
-        <option value="APPROVED" <?php if (htmlspecialchars($line["status"]) === "APPROVED") echo "selected" ?>>APPROVED</option>
-        <option value="AWAITING PAYMENT" <?php if (htmlspecialchars($line["status"]) === "AWAITING PAYMENT") echo "selected" ?>>AWAITING PAYMENT</option>
-        <option value="PART PAID" <?php if (htmlspecialchars($line["status"]) === "PART PAID") echo "selected" ?>>PART PAID</option>
-        <option value="PAID" <?php if (htmlspecialchars($line["status"]) === "PAID") echo "selected" ?>>PAID</option>
-      </select><input type="hidden" name="sale_id" value="<?php echo htmlspecialchars($invoice_id); ?>" ></div>
+      <div class="d-flex align-items-center gap-2">Status: <select name="sale_status" hx-post="/invoices/status.php" hx-swap="none" hx-include="next input" class="form-select form-select-sm" style="width: 200px;">
+          <option value="DRAFT" <?php if (htmlspecialchars($line["status"]) === "DRAFT") echo "selected" ?>>DRAFT</option>
+          <option value="APPROVED" <?php if (htmlspecialchars($line["status"]) === "APPROVED") echo "selected" ?>>APPROVED</option>
+          <option value="AWAITING PAYMENT" <?php if (htmlspecialchars($line["status"]) === "AWAITING PAYMENT") echo "selected" ?>>AWAITING PAYMENT</option>
+          <option value="PART PAID" <?php if (htmlspecialchars($line["status"]) === "PART PAID") echo "selected" ?>>PART PAID</option>
+          <option value="PAID" <?php if (htmlspecialchars($line["status"]) === "PAID") echo "selected" ?>>PAID</option>
+        </select>
+        <input type="hidden" name="sale_id" value="<?php echo htmlspecialchars($invoice_id); ?>">
+      </div>
+      <div class="d-flex align-items-center gap-2">Customer Address:
+        <select name="address_id" class="form-select form-select-sm" style="width: 200px;" hx-post="/invoices/customer-address.php" hx-swap="none" hx-include="next input">
+          <?php
+
+          $query = "
+          SELECT
+              address.id as address_id,
+              line1, 
+              line2, 
+              city, 
+              county, 
+              country, 
+              postcode,
+              CASE 
+                  WHEN sale_with_address.id IS NOT NULL THEN true
+                  ELSE false
+              END AS has_address_set
+          FROM address
+          INNER JOIN sale 
+              ON sale.customer_id = address.customer_id
+          LEFT JOIN sale AS sale_with_address
+              ON sale_with_address.customer_address_id = address.id
+          WHERE sale.user_id = $1;
+        ";
+
+          $params = [$user_id];
+          $result = pg_query_params($dbconn, $query, $params) or die('Query failed: ' . pg_last_error());
+
+          while ($row = pg_fetch_assoc($result)) { ?>
+            <option value="<?php echo $row["address_id"] ?>" <?php if ($row["has_address_set"] === "t") echo "selected"; ?>>
+              <?php echo $row["line1"]; ?>,
+              <?php echo $row["city"]; ?>,
+              <?php echo $row["country"]; ?>,
+              <?php echo $row["postcode"]; ?>
+            </option>
+          <?php } ?>
+        </select>
+        <input type="hidden" name="sale_id" value="<?php echo htmlspecialchars($invoice_id); ?>">
+      </div>
     </div>
     <table class="table">
       <thead>
