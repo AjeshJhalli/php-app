@@ -90,10 +90,10 @@ pg_free_result($result);
               ON sale.customer_id = address.customer_id
           LEFT JOIN sale AS sale_with_address
               ON sale_with_address.customer_address_id = address.id
-          WHERE sale.user_id = $1;
+          WHERE sale.user_id = $1 AND sale.id = $2;
         ";
 
-          $params = [$user_id];
+          $params = [$user_id, $invoice_id];
           $result = pg_query_params($dbconn, $query, $params) or die('Query failed: ' . pg_last_error());
 
           while ($row = pg_fetch_assoc($result)) { ?>
