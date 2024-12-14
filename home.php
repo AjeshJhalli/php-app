@@ -12,11 +12,6 @@ if (!isset($_SESSION['logged_in'])) {
 
 $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
 
-if ($_SERVER['PHP_SELF'] !== '/index.php') {
-  http_response_code(404);
-  die();
-}
-
 ?>
 
 <!DOCTYPE html>

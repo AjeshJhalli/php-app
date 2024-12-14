@@ -3,7 +3,7 @@
 session_start();
 
 if (isset($_SESSION['logged_in'])) {
-  header('Location: /');
+  header('Location: /home.php');
   die();
 }
 
@@ -50,7 +50,7 @@ $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PG
             $_SESSION['last_ping'] = time();
             $_SESSION['expiry'] = $_SESSION['last_ping'] + 30 * 86400;
 
-            header("Location: /");
+            header("Location: /home.php");
             pg_free_result($result);
             pg_close($dbconn);
             die();
