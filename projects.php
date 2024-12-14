@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <option selected disabled>Customer</option>
               <?php
 
-              $query = "SELECT id, name FROM customer WHERE user_id = '" . $_SESSION["id"] . "' ";
-              $result = pg_query($dbconn, $query) or die("Query failed: " . pg_last_error());
+              $query = "SELECT id, name FROM customer WHERE user_id = $1";
+              $result = pg_query_params($dbconn, $query, [$_SESSION["id"]]) or die("Query failed: " . pg_last_error());
 
               while (($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
                 echo "<option value='" . $line["id"] . "'>" . $line["name"] . "</option>";

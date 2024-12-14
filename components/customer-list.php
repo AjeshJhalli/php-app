@@ -22,8 +22,8 @@ if (isset($_GET['search'])) {
   $stmt = pg_prepare($dbconn, "", $query);
   $result = pg_execute($dbconn, "", $params);
 } else {
-  $query = "SELECT id, name FROM customer WHERE user_id = $user_id";
-  $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+  $query = "SELECT id, name FROM customer WHERE user_id = $1";
+  $result = pg_query_params($dbconn, $query, [$user_id]) or die('Query failed: ' . pg_last_error());
 }
 
 if (!$result) {

@@ -57,9 +57,3 @@ pg_close($dbconn);
 echo $invoice_id;
 
 die();
-
-// $query = "UPDATE project_line_item SET status = $1 WHERE user_id = $2 AND id = $3";
-// $params = [$status, $_SESSION["id"], $item_id];
-// $result = pg_query_params($dbconn, $query, $params);
-
-// pg_close($dbconn);

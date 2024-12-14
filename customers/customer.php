@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   die();
 }
 
-$query = 'SELECT name FROM customer WHERE id = ' . $customer_id;
-$result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+$query = "SELECT name FROM customer WHERE id = $1 AND user_id = $2";
+$result = pg_query_params($dbconn, $query, [$customer_id, $_SESSION["id"]]) or die('Query failed: ' . pg_last_error());
 
 if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
   http_response_code(404);

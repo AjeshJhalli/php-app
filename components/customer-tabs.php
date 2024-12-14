@@ -38,8 +38,8 @@ $customer_id = $_GET['customer_id'];
   <?php
   if ($tab === "projects") {
     $customer_id = $_GET["customer_id"];
-    $query = "SELECT id, name FROM project WHERE customer_id = " . $customer_id . " AND user_id = '" . $_SESSION['id'] . "'";
-    $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+    $query = "SELECT id, name FROM project WHERE customer_id = $1 AND user_id = $2";
+    $result = pg_query_params($dbconn, $query, [$customer_id, $_SESSION['id']]) or die('Query failed: ' . pg_last_error());
   ?>
     <div class="list-group mt-2">
       <?php while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
@@ -49,8 +49,9 @@ $customer_id = $_GET['customer_id'];
       <?php } ?>
     </div>
   <?php } else if ($tab == "invoices") {
-    $query = "SELECT id, status FROM sale WHERE customer_id = " . $_GET["customer_id"] . " AND user_id = '" . $_SESSION['id'] . "'";
-    $result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+    $customer_id = $_GET["customer_id"];
+    $query = "SELECT id, status FROM sale WHERE customer_id = $1 AND user_id = $2";
+    $result = pg_query_params($dbconn, $query, [$customer_id, $_SESSION['id']]) or die('Query failed: ' . pg_last_error());
 
   ?>
     <div class="list-group mt-2">

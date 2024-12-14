@@ -28,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   die();
 }
 
-$query = 'SELECT project.name AS project_name, customer.name AS customer_name, customer_id, hourly_rate FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = ' . $project_id;
-$result = pg_query($dbconn, $query) or die('Query failed: ' . pg_last_error());
+$query = 'SELECT project.name AS project_name, customer.name AS customer_name, customer_id, hourly_rate FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = $1';
+$result = pg_query_params($dbconn, $query, [$project_id]) or die('Query failed: ' . pg_last_error());
 
 if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
   http_response_code(404);
