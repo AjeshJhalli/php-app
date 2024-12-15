@@ -3,7 +3,7 @@ $uri_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri_segments = explode('/', $uri_path);
 ?>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom shadow-sm d-print-none">
   <div class="container">
     <a class="navbar-brand fw-bold text-primary" href="<?php if (isset($_SESSION['logged_in'])) {
                                                           echo "/home.php";

@@ -55,11 +55,24 @@ pg_free_result($result);
         <li class="breadcrumb-item active" aria-current="page"><?php echo "#" . htmlspecialchars($invoice_id) ?></li>
       </ol>
     </nav>
+    <a class="btn btn-primary" href="/invoices/preview.php?id=<?php echo htmlspecialchars($invoice_id) ?>">Preview</a>
     <h2 class="py-4">Invoice #<?php echo htmlspecialchars($line['sale_id']) ?></h2>
-    <div class="pb-4">
-      <div>Customer: <a href="/customers/customer.php?id=<?php echo htmlspecialchars($line["customer_id"]) ?>"><?php echo htmlspecialchars($line["customer_name"]) ?></a></div>
-      <div>Project: <a href="/projects/project.php?id=<?php echo htmlspecialchars($line["project_id"]) ?>"><?php echo htmlspecialchars($line["project_name"]) ?></a></div>
-      <div class="d-flex align-items-center gap-2">Status: <select name="sale_status" hx-post="/invoices/status.php" hx-swap="none" hx-include="next input" class="form-select form-select-sm" style="width: 200px;">
+    <div class="row justify-content-start container pb-4 w-50">
+      <div class="row align-items-center">
+        <div class="col-sm">Customer:</div>
+        <a class="col-sm" href="/customers/customer.php?id=<?php echo htmlspecialchars($line["customer_id"]) ?>">
+          <?php echo htmlspecialchars($line["customer_name"]) ?>
+        </a>
+      </div>
+      <div class="row align-items-center">
+        <div class="col-sm">Project:</div>
+        <a class="col-sm" href="/projects/project.php?id=<?php echo htmlspecialchars($line["project_id"]) ?>">
+          <?php echo htmlspecialchars($line["project_name"]) ?>
+        </a>
+      </div>
+      <div class="row align-items-center">
+        <div class="col-sm">Status:</div>
+        <select name="sale_status" hx-post="/invoices/status.php" hx-swap="none" hx-include="next input" class="col-sm form-select form-select-sm">
           <option value="DRAFT" <?php if (htmlspecialchars($line["status"]) === "DRAFT") echo "selected" ?>>DRAFT</option>
           <option value="APPROVED" <?php if (htmlspecialchars($line["status"]) === "APPROVED") echo "selected" ?>>APPROVED</option>
           <option value="AWAITING PAYMENT" <?php if (htmlspecialchars($line["status"]) === "AWAITING PAYMENT") echo "selected" ?>>AWAITING PAYMENT</option>
@@ -68,8 +81,9 @@ pg_free_result($result);
         </select>
         <input type="hidden" name="sale_id" value="<?php echo htmlspecialchars($invoice_id); ?>">
       </div>
-      <div class="d-flex align-items-center gap-2">Customer Address:
-        <select name="address_id" class="form-select form-select-sm" style="width: 200px;" hx-post="/invoices/customer-address.php" hx-swap="none" hx-include="next input">
+      <div class="row align-items-center">
+        <div class="col-sm">Customer Address:</div>
+        <select name="address_id" class="col-sm form-select form-select-sm" hx-post="/invoices/customer-address.php" hx-swap="none" hx-include="next input">
           <?php
 
           $query = "
