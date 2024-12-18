@@ -101,15 +101,18 @@ pg_free_result($result);
         ";
           $result = pg_query_params($dbconn, $query, [$invoice_id, $user_id]);
           $address = pg_fetch_assoc($result);
+
           ?>
           <div class="col fw-bold">Bill To:</div>
-          <div class="col"><?php echo $address["customer_name"]; ?></div>
-          <div class="col"><?php echo $address["line1"]; ?></div>
-          <div class="col"><?php echo $address["line2"]; ?></div>
-          <div class="col"><?php echo $address["city"]; ?></div>
-          <div class="col"><?php echo $address["county"]; ?></div>
-          <div class="col"><?php echo $address["country"]; ?></div>
-          <div class="col"><?php echo $address["postcode"]; ?></div>
+          <?php if ($address) { ?>
+            <div class="col"><?php echo $address["customer_name"]; ?></div>
+            <div class="col"><?php echo $address["line1"]; ?></div>
+            <div class="col"><?php echo $address["line2"]; ?></div>
+            <div class="col"><?php echo $address["city"]; ?></div>
+            <div class="col"><?php echo $address["county"]; ?></div>
+            <div class="col"><?php echo $address["country"]; ?></div>
+            <div class="col"><?php echo $address["postcode"]; ?></div>
+          <?php } ?>
         </div>
       </div>
     </div>

@@ -41,14 +41,14 @@ $uri_segments = explode('/', $uri_path);
             <a class="nav-link d-flex align-items-center <?php if ($uri_segments[1] === "projects.php" || $uri_segments[1] === "projects") {
                                                             echo "active";
                                                           } ?>" aria-current="page" href="/projects.php">
-              <i class="bi bi-people"></i><span class="ms-1">Projects</span>
+              <i class="bi bi-list-task"></i><span class="ms-1">Projects</span>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link d-flex align-items-center <?php if ($uri_segments[1] === "invoices.php" || $uri_segments[1] === "invoices") {
                                                             echo "active";
                                                           } ?>" aria-current="page" href="/invoices.php">
-              <i class="bi bi-people"></i><span class="ms-1">Invoices</span>
+              <i class="bi bi-bank"></i><span class="ms-1">Invoices</span>
             </a>
           </li>
         </ul>

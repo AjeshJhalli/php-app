@@ -29,9 +29,18 @@ $customer_id = $row[0];
 $hourly_rate = $row[1];
 pg_free_result($result);
 
+$result = pg_query_params($dbconn, "SELECT id FROM address WHERE customer_id = $1 AND user_id = $2 LIMIT 1", [$customer_id, $user_id]);
+$row = pg_fetch_row($result);
+if (!$row) {
+  http_response_code(400);
+  die();
+}
+$address_id = $row[0];
+pg_free_result($result);
+
 // Create invoice
-$query3 = "INSERT INTO sale (project_id, customer_id, user_id, status) VALUES ($1, $2, $3, $4) RETURNING id";
-$params = [$project_id, $customer_id, $_SESSION["id"], "DRAFT"];
+$query3 = "INSERT INTO sale (project_id, customer_id, user_id, status, customer_address_id) VALUES ($1, $2, $3, $4, $5) RETURNING id";
+$params = [$project_id, $customer_id, $_SESSION["id"], "DRAFT", $address_id];
 $result = pg_query_params($dbconn, $query3, $params);
 $row = pg_fetch_assoc($result);
 $invoice_id = $row["id"];

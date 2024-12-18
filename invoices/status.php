@@ -11,7 +11,7 @@ if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
 
 $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
 
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
   http_response_code(405);
   die();
 }
