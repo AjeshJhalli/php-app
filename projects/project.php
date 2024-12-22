@@ -7,7 +7,7 @@ $url_path = $url_parts[0];
 
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
+if (!isset($_SESSION['logged_in'])) {
   header('Location: /auth/signin.php');
   die();
 }
@@ -41,6 +41,10 @@ $customer_id = $line["customer_id"];
 $hourly_rate = number_format((float)htmlspecialchars($line["hourly_rate"]), 2, '.', '');
 
 pg_free_result($result);
+
+$url_edit = "?id=$project_id&mode=edit";
+$url_delete = "";
+$delete_confirmation = "Are you sure you want to delete this project?";
 
 ?>
 
@@ -118,23 +122,16 @@ pg_free_result($result);
 
     }
   </script>
-  <?php
-  $uri_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-  $uri_segments = explode('/', $uri_path);
-  include "../nav.php";
-  ?>
+  <?php include "../nav.php"; ?>
   <main class="container my-5">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/projects.php">Projects</a></li>
-        <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($line["project_name"]); ?></li>
-      </ol>
-    </nav>
-    <div class="btn-group" role="group">
-      <a class="btn btn-primary" href="?id=<?php echo htmlspecialchars($project_id) ?>&mode=edit">Edit</a>
-      <button class="btn btn-primary" hx-delete="" hx-confirm="Are you sure you want to delete this project?">
-        Delete
-      </button>
+    <div class="d-flex align-items-center justify-content-between">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/projects.php">Projects</a></li>
+          <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($line["project_name"]); ?></li>
+        </ol>
+      </nav>
+      <?php include '../templates/template_view_actions.php' ?>
     </div>
     <h2 class="py-4"><?php echo htmlspecialchars($line['project_name']) ?></h2>
     <?php if (isset($_GET['mode']) && $_GET['mode'] === 'edit') { ?>

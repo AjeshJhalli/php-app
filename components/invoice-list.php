@@ -24,7 +24,7 @@ $query = "
   ON customer.id = sale.customer_id
   LEFT JOIN sale_line_item
   ON sale_line_item.sale_id = sale.id
-  WHERE sale.user_id = $1
+  WHERE sale.user_id = $1 AND project.name IS NOT NULL
   GROUP BY sale.id, customer_name, project_name
 ";
 
