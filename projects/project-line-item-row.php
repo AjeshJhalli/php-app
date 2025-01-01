@@ -34,9 +34,7 @@
   <td id="line-item-<?php echo htmlspecialchars($row["id"]) ?>" align="right">
     <?php echo format_currency($hourly_rate * $row["hours_logged"]); ?>
   </td>
-  <td>
-  </td>
-  <td>
+  <td class="d-flex justify-content-end">
     <div class="dropdown">
       <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
         Options

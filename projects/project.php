@@ -182,9 +182,6 @@ pg_free_result($result);
               Amount
             </th>
             <th>
-              Invoice
-            </th>
-            <th>
             </th>
           </tr>
         </thead>

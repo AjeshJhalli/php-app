@@ -23,4 +23,6 @@ $query = "DELETE FROM project_line_item WHERE user_id = $1 AND id = $2";
 $params = [(int)$_SESSION["id"], (int)$item_id];
 $result = pg_query_params($dbconn, $query, $params);
 
+header("HX-Refresh: true");
+
 pg_close($dbconn);
