@@ -50,18 +50,21 @@ pg_close($dbconn);
   include "../nav.php";
   ?>
   <main class="container my-5">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/customers.php">Customers</a></li>
-        <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($line["name"]); ?></li>
-      </ol>
-    </nav>
-    <div class="btn-group" role="group">
-      <a class="btn btn-outline-primary" href="?id=<?php echo htmlspecialchars($customer_id) ?>&mode=edit">Edit</a>
-      <button class="btn btn-outline-primary" hx-delete="" hx-confirm="Are you sure you want to delete this customer?">
-        Delete
-      </button>
+    <div class="d-flex align-items-center justify-content-between">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/customers.php">Customers</a></li>
+          <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($line["name"]); ?></li>
+        </ol>
+      </nav>
+      <?php
+      $url_edit = "?id=$customer_id&mode=edit";
+      $url_delete = "";
+      $delete_confirmation = "Are you sure you want to delete this customer?";
+      include '../templates/template_view_actions.php';
+      ?>
     </div>
+
     <h2 class="py-4"><?php echo htmlspecialchars($line['name']) ?></h2>
     <?php if (isset($_GET['mode']) && $_GET['mode'] === 'edit') { ?>
       <form method="POST">

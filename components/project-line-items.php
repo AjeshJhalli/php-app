@@ -14,7 +14,7 @@ $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PG
 
 $query = "INSERT INTO project_line_item (name, user_id, customer_id, project_id) 
   VALUES ($1, $2, $3, $4) 
-  RETURNING id, name";
+  RETURNING id, name, hours_logged, status";
 
 $params = [
   "",
@@ -35,41 +35,10 @@ if ($result) {
 
 pg_close($dbconn);
 
-?>
+// The hourly rate can be 0 on new items because the initial time logged will be 0.
+$hourly_rate = 0;
 
-<tr>
-<td><input type="hidden" name="item_id" value="<?php echo htmlspecialchars($row["id"]) ?>"><input class="form-control" name="item_name" value="<?php echo htmlspecialchars($row["name"]) ?>" hx-post="/project-line-item/name.php" hx-trigger="keyup changed delay:500ms" hx-include="previous input"></td>
-  <td>
-    <select class="form-select">
-      <option selected>
-        To Do
-      </option>
-      <option>
-        In Progress
-      </option>
-      <option>
-        Testing
-      </option>
-      <option>
-        Done
-      </option>
-      <option>
-        Blocked
-      </option>
-    </select>
-  </td>
-  <td>0</td>
-  <td>£0.00</td>
-  <td>
-    <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-        Options
-      </button>
-      <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="#">Add payment</a></li>
-        <li><a class="dropdown-item" href="#">Log time</a></li>
-        <li><a class="dropdown-item" href="#">Delete</a></li>
-      </ul>
-    </div>
-  </td>
-</tr>
+include "../functions/format_currency.php";
+include "../projects/project-line-item-row.php";
+
+?>
