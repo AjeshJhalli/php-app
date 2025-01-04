@@ -111,7 +111,14 @@ pg_free_result($result);
           }),
           credentials: 'include',
           redirect: 'follow'
-        }).then(data => data.text())
+        }).then(data => {
+          if (data.status === 200) {
+            return data.text();
+          } else {
+            alert('Failed to create invoice. Response status: ' + data.status);
+            throw Error();
+          }
+        })
         .then(id => {
           window.location.href = `/invoices/invoice.php?id=${id}`;
         });

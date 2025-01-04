@@ -33,6 +33,7 @@ $result = pg_query_params($dbconn, "SELECT id FROM address WHERE customer_id = $
 $row = pg_fetch_row($result);
 if (!$row) {
   http_response_code(400);
+  echo "Customer does not have an address";
   die();
 }
 $address_id = $row[0];
