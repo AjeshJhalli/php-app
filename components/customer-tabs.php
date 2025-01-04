@@ -1,5 +1,7 @@
 <?php
 
+include "../functions/format_currency.php";
+
 $url_parts = explode('?', $_SERVER['REQUEST_URI']);
 $url_path = $url_parts[0];
 
@@ -50,14 +52,14 @@ $customer_id = $_GET['customer_id'];
     </div>
   <?php } else if ($tab == "invoices") {
     $customer_id = $_GET["customer_id"];
-    $query = "SELECT id, status FROM sale WHERE customer_id = $1 AND user_id = $2";
+    $query = "SELECT sale.id as id, status, SUM(quantity * unit_amount) as amount FROM sale LEFT JOIN sale_line_item ON sale.id = sale_line_item.sale_id WHERE sale.customer_id = $1 AND sale.user_id = $2 GROUP BY sale.id";
     $result = pg_query_params($dbconn, $query, [$customer_id, $_SESSION['id']]) or die('Query failed: ' . pg_last_error());
 
   ?>
     <div class="list-group mt-2">
       <?php while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
         <a class="list-group-item list-group-item-action" href="/invoices/invoice.php?id=<?php echo htmlspecialchars($line['id']); ?>">
-          Invoice #<?php echo htmlspecialchars($line['id']) . "-" . htmlspecialchars($line['status']); ?>
+          Invoice #<?php echo htmlspecialchars($line['id']) . " - " . format_currency(htmlspecialchars($line["amount"])) . " - " . htmlspecialchars($line['status']); ?>
         </a>
       <?php } ?>
     </div>
@@ -164,7 +166,7 @@ $customer_id = $_GET['customer_id'];
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <form hx-confirm="Are you sure you want to delete this email address?" hx-delete="/components/customer-addresses/delete.php" hx-target="closest tr">
+                    <form hx-confirm="Are you sure you want to delete this address?" hx-delete="/components/customer-addresses/delete.php" hx-target="closest tr">
                       <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
                       <button class="dropdown-item">Delete</button>
                     </form>

@@ -72,7 +72,7 @@ pg_close($dbconn);
       </button>
       <ul class="dropdown-menu">
         <li>
-          <form hx-confirm="Are you sure you want to delete this email address?" hx-delete="/components/customer-addresses/delete.php" hx-target="closest tr">
+          <form hx-confirm="Are you sure you want to delete this address?" hx-delete="/components/customer-addresses/delete.php" hx-target="closest tr">
             <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
             <button class="dropdown-item">Delete</button>
           </form>
