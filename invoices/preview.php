@@ -49,48 +49,51 @@ pg_free_result($result);
   include "../nav.php";
   ?>
   <main class="container my-5">
-    <nav class="d-print-none" aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/invoices.php">Invoices</a></li>
-        <li class="breadcrumb-item"><a href="/invoices/invoice.php?id=<?php echo htmlspecialchars($invoice_id) ?>"><?php echo "#" . htmlspecialchars($invoice_id) ?></a></li>
-        <li class="breadcrumb-item active" aria-current="page">Preview</li>
-      </ol>
-    </nav>
-    <button class="btn btn-primary d-print-none mb-3" onclick="print()">
-      Print
-    </button>
-    <div class="row align-items-start container mb-3 w-50">
-      <div class="row">
-        <span class="col fw-bold">
-          Invoice No:
-        </span>
-        <span class="col">
-          <?php echo htmlspecialchars($line['sale_id']) ?>
-        </span>
-      </div>
-      <div class="row">
-        <span class="col fw-bold">Invoice Date:</span>
-        <span class="col"><?php echo date("d M Y"); ?></span>
-      </div>
-      <div class="row">
-        <span class="col fw-bold">Due Date:</span>
-        <span class="col"><?php echo date("d M Y", time() + 604800); ?></span>
-      </div>
+    <div class="d-flex justify-content-between align-items-center">
+      <nav class="d-print-none" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/invoices.php">Invoices</a></li>
+          <li class="breadcrumb-item"><a href="/invoices/invoice.php?id=<?php echo htmlspecialchars($invoice_id) ?>"><?php echo "#" . htmlspecialchars($invoice_id) ?></a></li>
+          <li class="breadcrumb-item active" aria-current="page">Preview</li>
+        </ol>
+      </nav>
+      <button class="btn btn-primary d-print-none mb-3" onclick="print()">
+        Print
+      </button>
     </div>
-    <hr>
-    <div class="container">
-      <div class="row">
-        <div class="col">
-          <div class="col fw-bold">From:</div>
-          <div class="col">Code Cost</div>
-          <div class="col">120 Example Lane</div>
-          <div class="col">Twiddleham</div>
-          <div class="col">Skibidishire</div>
-          <div class="col">United Kingdom</div>
-        </div>
-        <div class="col">
-          <?php
-          $query = "
+    <table class="table mb-5">
+      <thead>
+        <tr>
+          <th>Invoice No</th>
+          <th>Invoice Date</th>
+          <th>Due Date</th>
+          <th>From</th>
+          <th>To</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <?php echo htmlspecialchars($line['sale_id']) ?>
+          </td>
+          <td>
+            <span class="col"><?php echo date("d M Y"); ?></span>
+          </td>
+          <td>
+            <span class="col"><?php echo date("d M Y", time() + 604800); ?></span>
+          </td>
+          <td>
+            <div class="col">Code Cost</div>
+            <div class="col">120 Example Lane</div>
+            <div class="col">Twiddleham</div>
+            <div class="col">Twiddleford</div>
+            <div class="col">Skibidishire</div>
+            <div class="col">United Kingdom</div>
+            <div class="col">MK12345</div>
+          </td>
+          <td>
+            <?php
+            $query = "
           SELECT line1, line2, city, county, country, postcode, customer.name as customer_name
           FROM address
           INNER JOIN sale
@@ -99,24 +102,22 @@ pg_free_result($result);
           ON sale.customer_id = customer.id
           WHERE sale.id = $1 AND address.user_id = $2;
         ";
-          $result = pg_query_params($dbconn, $query, [$invoice_id, $user_id]);
-          $address = pg_fetch_assoc($result);
+            $result = pg_query_params($dbconn, $query, [$invoice_id, $user_id]);
+            $address = pg_fetch_assoc($result);
 
-          ?>
-          <div class="col fw-bold">Bill To:</div>
-          <?php if ($address) { ?>
-            <div class="col"><?php echo $address["customer_name"]; ?></div>
-            <div class="col"><?php echo $address["line1"]; ?></div>
-            <div class="col"><?php echo $address["line2"]; ?></div>
-            <div class="col"><?php echo $address["city"]; ?></div>
-            <div class="col"><?php echo $address["county"]; ?></div>
-            <div class="col"><?php echo $address["country"]; ?></div>
-            <div class="col"><?php echo $address["postcode"]; ?></div>
-          <?php } ?>
-        </div>
-      </div>
-    </div>
-    <hr>
+            if ($address) { ?>
+              <div class="col"><?php echo $address["customer_name"]; ?></div>
+              <div class="col"><?php echo $address["line1"]; ?></div>
+              <div class="col"><?php echo $address["line2"]; ?></div>
+              <div class="col"><?php echo $address["city"]; ?></div>
+              <div class="col"><?php echo $address["county"]; ?></div>
+              <div class="col"><?php echo $address["country"]; ?></div>
+              <div class="col"><?php echo $address["postcode"]; ?></div>
+            <?php } ?>
+          </td>
+        </tr>
+      </tbody>
+    </table>
     <table class="table">
       <thead>
         <th>

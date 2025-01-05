@@ -137,15 +137,15 @@ pg_free_result($result);
     <table class="table">
       <thead>
         <th>
-          Line Item
+          Description
         </th>
-        <th>
+        <th style="text-align: right;">
           Quantity (hours)
         </th>
-        <th>
+        <th style="text-align: right;">
           Unit Amount
         </th>
-        <th>
+        <th style="text-align: right;">
           Total Amount
         </th>
       </thead>
@@ -157,12 +157,31 @@ pg_free_result($result);
         while ($line_item = pg_fetch_assoc($result)) { ?>
           <tr>
             <td><?php echo htmlspecialchars($line_item["name"]); ?></td>
-            <td><?php echo htmlspecialchars($line_item["quantity"]); ?></td>
-            <td><?php echo format_currency(htmlspecialchars($line_item["unit_amount"])); ?></td>
-            <td><?php echo format_currency(htmlspecialchars($line_item["quantity"] * $line_item["unit_amount"])); ?></td>
+            <td style="text-align: right;"><?php echo htmlspecialchars($line_item["quantity"]); ?></td>
+            <td style="text-align: right;"><?php echo format_currency(htmlspecialchars($line_item["unit_amount"])); ?></td>
+            <td style="text-align: right;"><?php echo format_currency(htmlspecialchars($line_item["quantity"] * $line_item["unit_amount"])); ?></td>
           </tr>
         <?php } ?>
       </tbody>
+      <tfoot>
+        <tr>
+          <th></th>
+          <th></th>
+          <th style="text-align: right;">Grand Total:</th>
+          <th style="text-align: right;">
+            <?php
+            $result = pg_query_params($dbconn, "SELECT SUM(sale_line_item.unit_amount * sale_line_item.quantity) AS amount
+            FROM sale
+            LEFT JOIN sale_line_item
+            ON sale_line_item.sale_id = sale.id
+            WHERE sale.user_id = $2 AND sale.id = $1
+            GROUP BY sale.id", [$invoice_id, $user_id]);
+            $row = pg_fetch_assoc($result);
+            echo format_currency($row["amount"]);
+            ?>
+          </th>
+        </tr>
+      </tfoot>
     </table>
   </main>
 </body>
