@@ -1,15 +1,4 @@
-<?php
-
-session_start();
-
-if (isset($_SESSION['logged_in'])) {
-  header('Location: /home.php');
-  die();
-}
-
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
-
-?>
+<?php include "../includes/core-signed-in.php" ?>
 
 <!DOCTYPE html>
 <html>
@@ -36,11 +25,11 @@ $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PG
         $username = strtolower($_POST["username"]);
         $password = $_POST["password"];
 
-        $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
-        $query = "SELECT id, password_hash FROM app_user WHERE username = $1";
-        $result = pg_query_params($dbconn, $query, [$username]);
+        $stmt = $db->prepare("SELECT id, password_hash FROM app_user WHERE username = ?");
+        $stmt->execute([$username]);
+        $line = $stmt->fetch();
 
-        if ($line = pg_fetch_row($result, null, PGSQL_ASSOC)) {
+        if ($line) {
           if (password_verify($password, $line['password_hash'])) {
 
             session_regenerate_id();
@@ -51,16 +40,12 @@ $dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PG
             $_SESSION['expiry'] = $_SESSION['last_ping'] + 30 * 86400;
 
             header("Location: /home.php");
-            pg_free_result($result);
-            pg_close($dbconn);
             die();
           }
         }
 
         echo '<div class="mb-2">Incorrect username or password</div>';
 
-        pg_free_result($result);
-        pg_close($dbconn);
       }
       ?>
       <button class="btn btn-primary my-2">Sign In</button>

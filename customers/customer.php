@@ -1,28 +1,37 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
+$user_id = $_SESSION["id"];
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
+if (!isset($_SESSION['logged_in'])) {
   header('Location: /auth/signin.php');
   die();
 }
 
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+try {
+  $db = new \PDO("sqlite:../database/codecost.sqlite");
+} catch (\PDOException $e) {
+  echo $e->getMessage();
+  die();
+}
 
-$customer_id = $_GET['id'];
+$customer_id = $_GET["id"];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
   $name = $_POST['name'];
-  pg_update($dbconn, 'customer', array('name' => $name), array('id' => $customer_id));
+  $statement_update_customer = $db->prepare("UPDATE customer SET name = :name WHERE id = :customer_id AND user_id = :user_id");
+  $statement_update_customer->execute([":name" => $name, ":customer_id" => $customer_id, ":user_id" => $user_id]);
   header('Location: ?id=' . $customer_id);
   die();
-} elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-  pg_delete($dbconn, 'customer', array('id' => $customer_id));
+
+} elseif ($_SERVER["REQUEST_METHOD"] === "DELETE") {
+
+  $statement_delete_customer = $db->prepare("DELETE FROM customer WHERE id = :customer_id AND user_id = :user_id");
+  $statement_delete_customer->execute([":customer_id" => $customer_id, "user_id" => $user_id]);
   header('HX-Location: /customers.php');
   die();
+
 }
 
 $query = "SELECT name FROM customer WHERE id = $1 AND user_id = $2";
