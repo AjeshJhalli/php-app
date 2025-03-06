@@ -1,22 +1,12 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
-session_start();
-
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
-  header('Location: /auth/signin.php');
-  die();
-}
-
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+include "./includes/core-signed-in.php";
 
 $new = isset($_GET['mode']) && $_GET['mode'] === 'new';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  pg_insert($dbconn, "customer", ["name" => $_POST["name"], "user_id" => $_SESSION["id"]]);
-  pg_close($dbconn);
+  $stmt = $db->prepare("INSERT INTO customer (name, user_id) VALUES (?, ?)");
+  $stmt->execute([$_POST["name"], $_SESSION["id"]]);
   header("Location: /customers.php");
   die();
 }
@@ -27,11 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html>
 <?php include "./head.html" ?>
 <body>
-  <?php
-  $uri_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-  $uri_segments = explode('/', $uri_path);
-  include "./nav.php";
-  ?>
+  <?php include "./nav.php"; ?>
   <main class="container my-5">
     <?php if ($new) { ?>
       <h1 class="mb-4">New Customer</h1>

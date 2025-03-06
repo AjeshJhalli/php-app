@@ -1,42 +1,34 @@
 <?php
 
-include "../config.php";
-
 session_start();
+
+try {
+  $db = new \PDO("sqlite:../database/codecost.sqlite");
+} catch (\PDOException $e) {
+  die();
+}
 
 $url_parts = explode('?', $_SERVER['REQUEST_URI']);
 $url_path = $url_parts[0];
 $user_id = $_SESSION['id'];
 
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
-  header('Location: /auth/signin.php');
+if (!isset($_SESSION['logged_in'])) {
+  http_response_code(401);
   die();
 }
 
-$dbconn = pg_connect($db_connection_string) or die('Could not connect: ' . pg_last_error());
-
 if (isset($_GET['search'])) {
-  $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
-  $query = "SELECT id, name FROM customer WHERE user_id = $1 AND name ILIKE $2";
-  $params = [$user_id, $search];
-  $stmt = pg_prepare($dbconn, "", $query);
-  $result = pg_execute($dbconn, "", $params);
+  $search = $_GET['search'];
+  $search = "%$search%";
+  $stmt = $db->prepare("SELECT id, name FROM customer WHERE user_id = ? AND UPPER(name) LIKE ?");
+  $stmt->execute([$user_id, $search]);
 } else {
-  $query = "SELECT id, name FROM customer WHERE user_id = $1";
-  $result = pg_query_params($dbconn, $query, [$user_id]) or die('Query failed: ' . pg_last_error());
+  $stmt = $db->prepare("SELECT id, name FROM customer WHERE user_id = ?");
+  $stmt->execute([$user_id]);
 }
 
-if (!$result) {
-  die('Query failed: ' . pg_last_error());
-}
-
-while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
+foreach ($stmt as $line) { ?>
   <a class="list-group-item list-group-item-action" href="/customers/customer.php?id=<?php echo htmlspecialchars($line["id"]); ?>">
     <?php echo htmlspecialchars($line['name']); ?>
   </a>
-  <?php
-}
-
-pg_free_result($result);
-pg_close($dbconn);
-die();
+<?php }
