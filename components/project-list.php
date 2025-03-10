@@ -1,35 +1,37 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
-  header('Location: /auth/signin.php');
+if (!isset($_SESSION["logged_in"])) {
   die();
 }
 
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+$db_path = "sqlite:../database/codecost.sqlite";
+
+try {
+  $db = new \PDO($db_path);
+} catch (\PDOException $e) {
+  echo $e;
+  die();
+}
+
+$user_id = $_SESSION["id"];
 
 if (isset($_GET['search'])) {
-  $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
-  $query = "SELECT project.id AS project_id, project.name AS project_name, customer_id, customer.name AS customer_name FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.user_id = $1 AND (project.name ILIKE $2 OR customer.name ILIKE $2)";
-  $params = [$_SESSION['id'], $search];
-  $stmt = pg_prepare($dbconn, "", $query);
-  $result = pg_execute($dbconn, "", $params);
+  
+  $search = $_GET["search"];
+  $search = "%$search%";
+  $stmt = $db->prepare("SELECT project.id AS project_id, project.name AS project_name, customer_id, customer.name AS customer_name FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.user_id = $1 AND (project.name LIKE ? OR customer.name LIKE ?)");
+  $stmt->execute([$user_id, $search]);
+  
 } else {
-  $query = "SELECT project.id AS project_id, project.name AS project_name, customer_id, customer.name AS customer_name FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.user_id = $1";
-  $params = [$_SESSION['id']];
-  $stmt = pg_prepare($dbconn, "", $query);
-  $result = pg_execute($dbconn, "", $params);
+
+  $stmt = $db->prepare("SELECT project.id AS project_id, project.name AS project_name, customer_id, customer.name AS customer_name FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.user_id = $1");
+  $stmt->execute([$user_id]);
+
 }
 
-if (!$result) {
-  die('Query failed: ' . pg_last_error());
-}
-
-while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
+foreach ($stmt as $line) { ?>
   <tr onclick="window.location.href = '/projects/project.php?id=<?php echo htmlspecialchars($line["project_id"]); ?>'">
     <td>
       <?php echo htmlspecialchars($line['project_name']); ?>
@@ -39,6 +41,3 @@ while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
     </td>
   </tr>
 <?php }
-
-pg_free_result($result);
-pg_close($dbconn);

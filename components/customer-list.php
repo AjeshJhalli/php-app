@@ -2,25 +2,23 @@
 
 session_start();
 
+if (!isset($_SESSION['logged_in'])) {
+  http_response_code(401);
+  die();
+}
+
 try {
   $db = new \PDO("sqlite:../database/codecost.sqlite");
 } catch (\PDOException $e) {
   die();
 }
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
 $user_id = $_SESSION['id'];
-
-if (!isset($_SESSION['logged_in'])) {
-  http_response_code(401);
-  die();
-}
 
 if (isset($_GET['search'])) {
   $search = $_GET['search'];
   $search = "%$search%";
-  $stmt = $db->prepare("SELECT id, name FROM customer WHERE user_id = ? AND UPPER(name) LIKE ?");
+  $stmt = $db->prepare("SELECT id, name FROM customer WHERE user_id = ? AND name LIKE ?");
   $stmt->execute([$user_id, $search]);
 } else {
   $stmt = $db->prepare("SELECT id, name FROM customer WHERE user_id = ?");

@@ -1,39 +1,39 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path !== "/auth/signin.php") {
+if (!isset($_SESSION['logged_in'])) {
   die();
 }
 
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+$db_path = "sqlite:../../database/codecost.sqlite";
 
-$query = "INSERT INTO email_address (label, email_address, default_flag, user_id, customer_id) 
+try {
+  $db = new \PDO($db_path);
+} catch (\PDOException $e) {
+  echo $e;
+  die();
+}
+
+$stmt = $db->prepare("INSERT INTO email_address (label, email_address, default_flag, user_id, customer_id) 
   VALUES ($1, $2, $3, $4, $5) 
-  RETURNING id";
+  RETURNING id");
 
-$params = [
+$stmt->execute([
   "",
   "",
   "FALSE",
   $_SESSION["id"],
   (int)$_POST["customer_id"]
-];
+]);
 
-$result = pg_query_params($dbconn, $query, $params);
+$row = $stmt->fetch();
 
-if ($result) {
-  $row = pg_fetch_assoc($result);
+if ($row) {
   $email_id = $row["id"];
 } else {
-  pg_close($dbconn);
   die();
 }
-
-pg_close($dbconn);
 
 ?>
 

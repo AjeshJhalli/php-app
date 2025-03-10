@@ -15,10 +15,15 @@ if ($url_path === "/auth/signin.php" || $url_path === "/auth/signup.php") {
   die();
 }
 
+$db_path = "sqlite:" .  __DIR__ . "/database/codecost.sqlite";
+
 try {
-  $db = new \PDO("sqlite:./database/codecost.sqlite");
+  $db = new \PDO($db_path);
 } catch (\PDOException $e) {
+  echo $e;
   die();
 }
+
+$user_id = $_SESSION["id"];
 
 ?>

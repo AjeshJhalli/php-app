@@ -1,27 +1,30 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
+if ($_SERVER["REQUEST_METHOD"] != "POST") {
+  http_response_code(405);
+  die();
+}
 
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
+if (!isset($_SESSION["logged_in"])) {
   header('Location: /auth/signin.php');
   die();
 }
 
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+$db_path = "sqlite:../../database/codecost.sqlite";
 
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
-  http_response_code(405);
+try {
+  $db = new \PDO($db_path);
+} catch (\PDOException $e) {
+  echo $e;
+  http_response_code(500);
   die();
 }
 
 $email_id = $_POST["email_id"];
 $label = $_POST["email_label"];
 
-$query = "UPDATE email_address SET label = $1 WHERE user_id = $2 AND id = $3";
-$params = [$label, $_SESSION["id"], $email_id];
-$result = pg_query_params($dbconn, $query, $params);
+$stmt = $db->prepare("UPDATE email_address SET label = ? WHERE user_id = ? AND id = ?");
+$stmt->execute([$label, $_SESSION["id"], $email_id]);
 
-pg_close($dbconn);

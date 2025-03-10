@@ -2,18 +2,22 @@
 
 include "../functions/format_currency.php";
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
-  header('Location: /auth/signin.php');
+if (!isset($_SESSION['logged_in'])) {
   die();
 }
 
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+$db_path = "sqlite:../database/codecost.sqlite";
 
+try {
+  $db = new \PDO($db_path);
+} catch (\PDOException $e) {
+  echo $e;
+  die();
+}
+
+$user_id = $_SESSION["id"];
 $tab = $_GET["tab"];
 $customer_id = $_GET['customer_id'];
 
@@ -40,11 +44,11 @@ $customer_id = $_GET['customer_id'];
   <?php
   if ($tab === "projects") {
     $customer_id = $_GET["customer_id"];
-    $query = "SELECT id, name FROM project WHERE customer_id = $1 AND user_id = $2";
-    $result = pg_query_params($dbconn, $query, [$customer_id, $_SESSION['id']]) or die('Query failed: ' . pg_last_error());
+    $stmt = $db->prepare("SELECT id, name FROM project WHERE customer_id = ? AND user_id = ?");
+    $stmt->execute([$customer_id, $user_id]);
   ?>
     <div class="list-group mt-2">
-      <?php while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
+      <?php foreach ($stmt as $line) { ?>
         <a class='list-group-item list-group-item-action' href="/projects/project.php?id=<?php echo htmlspecialchars($line["id"]); ?>">
           <?php echo htmlspecialchars($line["name"]); ?>
         </a>
@@ -52,12 +56,12 @@ $customer_id = $_GET['customer_id'];
     </div>
   <?php } else if ($tab == "invoices") {
     $customer_id = $_GET["customer_id"];
-    $query = "SELECT sale.id as id, status, SUM(quantity * unit_amount) as amount FROM sale LEFT JOIN sale_line_item ON sale.id = sale_line_item.sale_id WHERE sale.customer_id = $1 AND sale.user_id = $2 GROUP BY sale.id";
-    $result = pg_query_params($dbconn, $query, [$customer_id, $_SESSION['id']]) or die('Query failed: ' . pg_last_error());
+    $stmt = $db->prepare("SELECT sale.id as id, status, SUM(quantity * unit_amount) as amount FROM sale LEFT JOIN sale_line_item ON sale.id = sale_line_item.sale_id WHERE sale.customer_id = ? AND sale.user_id = ? GROUP BY sale.id");
+    $stmt->execute([$customer_id, $user_id]);
 
   ?>
     <div class="list-group mt-2">
-      <?php while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
+      <?php foreach ($stmt as $line) { ?>
         <a class="list-group-item list-group-item-action" href="/invoices/invoice.php?id=<?php echo htmlspecialchars($line['id']); ?>">
           Invoice #<?php echo htmlspecialchars($line['id']) . " - " . format_currency(htmlspecialchars($line["amount"])) . " - " . htmlspecialchars($line['status']); ?>
         </a>
@@ -75,10 +79,10 @@ $customer_id = $_GET['customer_id'];
       <tbody id="customer-email-addresses-body">
         <?php
 
-        $query = "SELECT id, email_address, label FROM email_address WHERE customer_id = $1 AND user_id = $2";
-        $params = [$customer_id, $_SESSION["id"]];
-        $result = pg_query_params($dbconn, $query, $params);
-        while ($row = pg_fetch_assoc($result)) { ?>
+        $stmt = $db->prepare("SELECT id, email_address, label FROM email_address WHERE customer_id = ? AND user_id = ?");
+        $stmt->execute([$customer_id, $user_id]);
+        
+        foreach ($stmt as $row) { ?>
           <tr>
             <td>
               <input type="hidden" name="email_id" value="<?php echo htmlspecialchars($row["id"]) ?>">
@@ -130,10 +134,10 @@ $customer_id = $_GET['customer_id'];
       <tbody id="customer-addresses-body">
         <?php
 
-        $query = "SELECT id, line1, line2, city, county, country, postcode FROM address WHERE customer_id = $1 AND user_id = $2 ORDER BY created_at ASC";
-        $params = [$customer_id, $_SESSION["id"]];
-        $result = pg_query_params($dbconn, $query, $params);
-        while ($row = pg_fetch_assoc($result)) { ?>
+        $stmt = $db->prepare("SELECT id, line1, line2, city, county, country, postcode FROM address WHERE customer_id = ? AND user_id = ? ORDER BY creation_timestamp ASC");
+        $stmt->execute([$customer_id, $user_id]);
+        
+        foreach ($stmt as $row) { ?>
           <tr>
             <td>
               <input type="hidden" name="address_id" value="<?php echo htmlspecialchars($row["id"]) ?>">

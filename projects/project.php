@@ -1,18 +1,7 @@
 <?php
 
 include "../functions/format_currency.php";
-
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
-session_start();
-
-if (!isset($_SESSION['logged_in'])) {
-  header('Location: /auth/signin.php');
-  die();
-}
-
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+include "../core-signed-in.php";
 
 $project_id = $_GET['id'];
 
@@ -28,10 +17,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   die();
 }
 
-$query = 'SELECT project.name AS project_name, customer.name AS customer_name, customer_id, hourly_rate FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = $1';
-$result = pg_query_params($dbconn, $query, [$project_id]) or die('Query failed: ' . pg_last_error());
+$stmt = $db->prepare("SELECT project.name AS project_name, customer.name AS customer_name, customer_id, hourly_rate FROM project INNER JOIN customer ON customer_id = customer.id WHERE project.id = ?");
+$stmt->execute([$project_id]);
 
-if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
+if (!($line = $stmt->fetch())) {
   http_response_code(404);
   die();
 }
@@ -39,8 +28,6 @@ if (!($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
 $customer_id = $line["customer_id"];
 
 $hourly_rate = number_format((float)htmlspecialchars($line["hourly_rate"]), 2, '.', '');
-
-pg_free_result($result);
 
 ?>
 
@@ -194,11 +181,11 @@ pg_free_result($result);
         </thead>
         <tbody id="project-line-items-tbody">
           <?php
-          $query = "SELECT id, name, status, hours_logged FROM project_line_item WHERE user_id = $1 AND project_id = $2 ORDER BY created_at ASC";
-          $params = [$_SESSION["id"], $project_id];
-          $result = pg_query_params($dbconn, $query, $params);
 
-          while ($row = pg_fetch_row($result, null, PGSQL_ASSOC)) { 
+          $stmt = $db->prepare("SELECT id, name, status, hours_logged FROM project_line_item WHERE user_id = ? AND project_id = ? ORDER BY creation_timestamp ASC");
+          $stmt->execute([$user_id, $project_id]);
+
+          foreach ($stmt as $row) {
             include "./project-line-item-row.php";
           } ?>
         </tbody>

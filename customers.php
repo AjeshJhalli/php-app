@@ -1,6 +1,6 @@
 <?php
 
-include "./includes/core-signed-in.php";
+include "./core-signed-in.php";
 
 $new = isset($_GET['mode']) && $_GET['mode'] === 'new';
 

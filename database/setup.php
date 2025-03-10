@@ -12,6 +12,7 @@ try {
 }
 
 $queries = [
+  "DROP TABLE address",
   "CREATE TABLE IF NOT EXISTS app_user (
     id INTEGER PRIMARY KEY,
     creation_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -47,6 +48,7 @@ $queries = [
   "CREATE TABLE IF NOT EXISTS address (
     id INTEGER PRIMARY KEY,
     creation_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    customer_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     line1 TEXT NOT NULL,
     line2 TEXT NOT NULL,

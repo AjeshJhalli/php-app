@@ -1,18 +1,13 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path !== "/auth/signin.php") {
+if (!isset($_SESSION['logged_in'])) {
   die();
 }
 
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
-
 $query = "INSERT INTO address (line1, line2, city, county, country, postcode, user_id, customer_id) 
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?) 
   RETURNING id";
 
 $params = [

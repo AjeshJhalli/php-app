@@ -1,24 +1,16 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
-session_start();
-
-if (!isset($_SESSION['logged_in'])) {
-  header('Location: /auth/signin.php');
-  die();
-}
-
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+include "./core-signed-in.php";
 
 $new = isset($_GET['mode']) && $_GET['mode'] === 'new';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $result = pg_insert($dbconn, "project", ["name" => $_POST["name"], "user_id" => $_SESSION["id"], "customer_id" => $_POST["customer_id"], "hourly_rate" => $_POST["hourly_rate"]]);
-  pg_close($dbconn);
+
+  $stmt = $db->prepare("INSERT INTO project (name, user_id, customer_id, hourly_rate) VALUES (?, ?, ?, ?)");
+  $stmt->execute([$_POST["name"], $_SESSION["id"], $_POST["customer_id"], $_POST["hourly_rate"]]);
   header("Location: /projects.php");
   die();
+  
 }
 
 ?>
@@ -29,11 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include "./head.html" ?>
 
 <body>
-  <?php
-  $uri_path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-  $uri_segments = explode('/', $uri_path);
-  include "./nav.php";
-  ?>
+  <?php include "./nav.php"; ?>
   <main class="container my-5">
 
     <h1 class="mb-4">Projects</h1>
@@ -48,10 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <option selected disabled>Customer</option>
               <?php
 
-              $query = "SELECT id, name FROM customer WHERE user_id = $1";
-              $result = pg_query_params($dbconn, $query, [$_SESSION["id"]]) or die("Query failed: " . pg_last_error());
+              $stmt = $db->prepare("SELECT id, name FROM customer WHERE user_id = ?");
+              $stmt->execute([$user_id]);
 
-              while (($line = pg_fetch_row($result, null, PGSQL_ASSOC))) {
+              foreach ($stmt as $line) {
                 echo "<option value='" . $line["id"] . "'>" . $line["name"] . "</option>";
               }
 

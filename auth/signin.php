@@ -1,4 +1,4 @@
-<?php include "../includes/core-signed-in.php" ?>
+<?php include "../core-signed-out.php" ?>
 
 <!DOCTYPE html>
 <html>
