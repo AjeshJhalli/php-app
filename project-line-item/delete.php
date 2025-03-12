@@ -1,28 +1,26 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
-session_start();
-
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
-  header('Location: /auth/signin.php');
-  die();
-}
-
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
-
-if ($_SERVER["REQUEST_METHOD"] != "DELETE") {
+if ($_SERVER["REQUEST_METHOD"] !== "DELETE") {
   http_response_code(405);
   die();
 }
 
-$item_id = $_GET["id"];
+session_start();
 
-$query = "DELETE FROM project_line_item WHERE user_id = $1 AND id = $2";
-$params = [(int)$_SESSION["id"], (int)$item_id];
-$result = pg_query_params($dbconn, $query, $params);
+if (!isset($_SESSION['logged_in'])) {
+  die();
+}
+
+try {
+  $db = new \PDO("sqlite:../database/codecost.sqlite");
+} catch (\PDOException $e) {
+  die();
+}
+
+$user_id = (int)$_SESSION["id"];
+$item_id = (int)$_GET["id"];
+
+$stmt = $db->prepare("DELETE FROM project_line_item WHERE user_id = ? AND id = ?");
+$stmt->execute([$user_id, $item_id]);
 
 header("HX-Refresh: true");
-
-pg_close($dbconn);

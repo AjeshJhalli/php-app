@@ -1,24 +1,25 @@
 <?php
 
-include "../functions/format_currency.php";
-
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
-session_start();
-
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
-  header('Location: /auth/signin.php');
-  die();
-}
-
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
-
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
   http_response_code(405);
   die();
 }
 
+include "../functions/format_currency.php";
+
+session_start();
+
+if (!isset($_SESSION['logged_in'])) {
+  die();
+}
+
+try {
+  $db = new \PDO("sqlite:../database/codecost.sqlite");
+} catch (\PDOException $e) {
+  die();
+}
+
+$user_id = $_SESSION["id"];
 $item_id = $_POST["item_id"];
 $hours_logged = $_POST["hours_logged"];
 $hourly_rate = $_POST["hourly_rate"];
@@ -27,10 +28,7 @@ if (!$hours_logged) {
   $hours_logged = 0;
 }
 
-$query = "UPDATE project_line_item SET hours_logged = $1 WHERE user_id = $2 AND id = $3";
-$params = [$hours_logged, $_SESSION["id"], $item_id];
-$result = pg_query_params($dbconn, $query, $params);
-
-pg_close($dbconn);
+$stmt = $db->prepare("UPDATE project_line_item SET hours_logged = ? WHERE user_id = ? AND id = ?");
+$stmt->execute([$hours_logged, $user_id, $item_id]);
 
 echo format_currency($hours_logged * $hourly_rate);
