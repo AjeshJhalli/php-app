@@ -1,22 +1,25 @@
 <?php
 
-include "../config.php";
 include "../functions/format_currency.php";
-
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
 
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
-  header('HX-Location: /auth/signin.php');
+if (!isset($_SESSION['logged_in'])) {
   die();
 }
 
-$dbconn = pg_connect($db_connection_string) or die('Could not connect: ' . pg_last_error());
+try {
+  $db = new \PDO("sqlite:../database/codecost.sqlite");
+} catch (\PDOException $e) {
+  echo $e;
+  die();
+}
+
+$user_id = $_SESSION["id"];
 
 if (isset($_GET["search"])) {
-  $search = '%' . pg_escape_string($dbconn, $_GET["search"]) . '%';
+  $search = $_GET["search"];
+  $search = "%$search%";
   $query = "
     SELECT sale.id AS id, sale.status AS status, customer.name AS customer_name, project.name AS project_name, SUM(sale_line_item.unit_amount * sale_line_item.quantity) AS amount
     FROM sale
@@ -26,12 +29,11 @@ if (isset($_GET["search"])) {
     ON customer.id = sale.customer_id
     LEFT JOIN sale_line_item
     ON sale_line_item.sale_id = sale.id
-    WHERE sale.user_id = $1 AND project.name IS NOT NULL AND
-    (project.name ILIKE $2 OR customer.name ILIKE $2)
+    WHERE sale.user_id = :user_id AND
+    (project.name LIKE :search OR customer.name LIKE :search)
     GROUP BY sale.id, customer_name, project_name
   ";
-  $params = [$_SESSION["id"], $search];
-  $stmt = pg_prepare($dbconn, "", $query);
+  $params = [":user_id" => $user_id, ":search" => $search];
 } else {
   $query = "
     SELECT sale.id AS id, sale.status AS status, customer.name AS customer_name, project.name AS project_name, SUM(sale_line_item.unit_amount * sale_line_item.quantity) AS amount
@@ -42,20 +44,16 @@ if (isset($_GET["search"])) {
     ON customer.id = sale.customer_id
     LEFT JOIN sale_line_item
     ON sale_line_item.sale_id = sale.id
-    WHERE sale.user_id = $1 AND project.name IS NOT NULL
+    WHERE sale.user_id = ?
     GROUP BY sale.id, customer_name, project_name
   ";
-  $params = [$_SESSION["id"]];
-  $stmt = pg_prepare($dbconn, "", $query);
+  $params = [$user_id];  
 }
 
-$result = pg_execute($dbconn, "", $params);
+$stmt = $db->prepare($query);
+$stmt->execute($params);
 
-if (!$result) {
-  die('Query failed: ' . pg_last_error());
-}
-
-while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
+foreach ($stmt as $line) { ?>
   <tr onclick="window.location.href = '/invoices/invoice.php?id=<?php echo htmlspecialchars($line["id"]); ?>'">
     <td style="text-align: right; padding-right: 40px;">
       <?php echo htmlspecialchars($line['id']); ?>
@@ -74,6 +72,3 @@ while ($line = pg_fetch_array($result, null, PGSQL_ASSOC)) { ?>
     </td>
   </tr>
 <?php }
-
-pg_free_result($result);
-pg_close($dbconn);

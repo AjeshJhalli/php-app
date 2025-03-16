@@ -1,18 +1,19 @@
 <?php
 
-$url_parts = explode('?', $_SERVER['REQUEST_URI']);
-$url_path = $url_parts[0];
-
 session_start();
 
-if (!isset($_SESSION['logged_in']) && $url_path != "/auth/signin.php") {
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+  http_response_code(405);
   die();
 }
 
-$dbconn = pg_connect("user=postgres.wjucgknzgympnnywamjy password=" . getenv("PGPASSWORD") . " host=aws-0-eu-west-2.pooler.supabase.com port=6543 dbname=postgres") or die('Could not connect: ' . pg_last_error());
+if (!isset($_SESSION['logged_in'])) {
+  die();
+}
 
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
-  http_response_code(405);
+try {
+  $db = new \PDO("sqlite:../database/codecost.sqlite");
+} catch (\PDOException $e) {
   die();
 }
 
@@ -22,48 +23,36 @@ $project_id = $_POST["project_id"];
 $item_ids = explode(',', $_POST["item_ids"]);
 
 // Get customer ID
-$result = pg_prepare($dbconn, "", "SELECT customer_id, hourly_rate FROM project WHERE id = $1 AND user_id = $2");
-$result = pg_execute($dbconn, "", array($project_id, $user_id));
-$row = pg_fetch_row($result);
+$stmt = $db->prepare("SELECT customer_id, hourly_rate FROM project WHERE id = ? AND user_id = ?");
+$stmt->execute([$project_id, $user_id]);
+$row = $stmt->fetch();
 $customer_id = $row[0];
 $hourly_rate = $row[1];
-pg_free_result($result);
 
-$result = pg_query_params($dbconn, "SELECT id FROM address WHERE customer_id = $1 AND user_id = $2 LIMIT 1", [$customer_id, $user_id]);
-$row = pg_fetch_row($result);
-if (!$row) {
-  http_response_code(400);
-  echo "Customer does not have an address";
-  die();
-}
+$stmt = $db->prepare("SELECT id FROM address WHERE customer_id = ? AND user_id = ? LIMIT 1");
+$stmt->execute([$customer_id, $user_id]);
+$row = $stmt->fetch();
+
+// if (!$row) {
+//   http_response_code(400);
+//   die("Customer does not have an address");
+// }
+
 $address_id = $row[0];
-pg_free_result($result);
 
 // Create invoice
-$query3 = "INSERT INTO sale (project_id, customer_id, user_id, status, customer_address_id) VALUES ($1, $2, $3, $4, $5) RETURNING id";
-$params = [$project_id, $customer_id, $_SESSION["id"], "DRAFT", $address_id];
-$result = pg_query_params($dbconn, $query3, $params);
-$row = pg_fetch_assoc($result);
+$stmt = $db->prepare("INSERT INTO sale (project_id, customer_id, user_id, status, customer_address_id) VALUES (?, ?, ?, ?, ?) RETURNING id");
+$stmt->execute([$project_id, $customer_id, $_SESSION["id"], "DRAFT", $address_id]);
+$row = $stmt->fetch();
 $invoice_id = $row["id"];
-pg_free_result($result);
 
 // Get project line items
 $id_list = implode(', ', array_map('intval', $item_ids));
-$query1 = "SELECT name, hours_logged FROM project_line_item WHERE id IN ($id_list)";
-$result = pg_query($dbconn, $query1);
+$stmt = $db->prepare("SELECT name, hours_logged FROM project_line_item WHERE id IN (?)");
+$stmt->execute([$id_list]);
 
 // Create the invoice line items
-if ($result) {
-  while ($row = pg_fetch_assoc($result)) {
-    $item = ["name" => $row["name"], "quantity" => $row["hours_logged"], "unit_amount" => $hourly_rate, "user_id" => $user_id, "sale_id" => $invoice_id];
-    $result2 = pg_insert($dbconn, "sale_line_item", $item);
-  }
-} else {
-  die();
+foreach ($stmt as $row) {
+  $stmt = $db->prepare("INSERT INTO sale_line_item (name, quantity, unit_amount, user_id, sale_id) VALUES (?, ?, ?, ?, ?)");
+  $stmt->execute([$row["name"], $row["hours_logged"], $hourly_rate, $user_id, $invoice_id]);
 }
-
-pg_close($dbconn);
-
-echo $invoice_id;
-
-die();
