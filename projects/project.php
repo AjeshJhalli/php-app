@@ -8,7 +8,10 @@ $project_id = $_GET['id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name = $_POST["name"];
   $hourly_rate = $_POST["hourly_rate"];
-  pg_update($dbconn, "project", array("name" => $name, "hourly_rate" => $hourly_rate), array('id' => $project_id));
+  
+  $stmt = $db->prepare("UPDATE project SET name = ?, hourly_rate = ? WHERE id = ?");
+  $stmt->execute([$name, $hourly_rate, $project_id]);
+
   header('Location: ?id=' . $project_id);
   die();
 } elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
