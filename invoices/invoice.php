@@ -155,12 +155,18 @@ if (!$line) {
             FROM sale
             LEFT JOIN sale_line_item
             ON sale_line_item.sale_id = sale.id
-            WHERE sale.user_id = $2 AND sale.id = $1
+            WHERE sale.user_id = ? AND sale.id = ?
             GROUP BY sale.id");
-            $stmt->execute([$invoice_id, $user_id]);
+            $result = $stmt->execute([$invoice_id, $user_id]);
             $row = $stmt->fetch();
 
-            echo format_currency($row["amount"]);
+            if ($row) {
+              $amount = $row["amount"];
+            } else {
+              $amount = 0;
+            }
+
+            echo format_currency($amount);
 
             ?>
           </th>
